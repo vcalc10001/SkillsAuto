@@ -1,0 +1,19 @@
+{
+	"extension": {
+		"version": "0.6.1",
+		"json": 2
+	},
+	"project": {
+		"name": "RedQual",
+		"slot": 1,
+		"description": "",
+		"platform": "V5",
+		"creationDate": "Wed, 27 Nov 2024 21:36:57 GMT",
+		"language": "cpp",
+		"sdkVersion": "V5_20240802_15_00_00",
+		"cpp": {
+			"includePath": [],
+			"printf_float": true
+		}
+	}
+}
