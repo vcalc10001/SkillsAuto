@@ -22,6 +22,8 @@ void raiseDoinker(void) {
 }
 
 //Conveyor Functions
+
+//Spins Intake and conveyor forward (take in rings and score); while looking for ring to reject
 void spinConveyorForward(void) {
   while (Controller1.ButtonL1.pressing()) {
     intakeAndConveyor.spin(forward);
@@ -48,6 +50,7 @@ void spinConveyorForward(void) {
   intakeAndConveyor.stop();
 }
 
+//Spins Intake and conveyor in reverse
 void spinConveyorReverse(void) {
   while (Controller1.ButtonL2.pressing()) {
     intakeAndConveyor.spin(reverse);
