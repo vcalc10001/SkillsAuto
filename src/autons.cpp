@@ -99,6 +99,8 @@ void skills_auto() {
   conveyor.spin(reverse);
   wait(0.3,seconds);
   conveyor.stop();
+
+
   chassis.drive_timeout=400;
   chassis.drive_distance(5);
   turn_to_heading_large(255);
@@ -117,6 +119,7 @@ void skills_auto() {
  // arm_get(); 
   turn_to_heading_tiny(16);
   chassis.drive_distance(40);
+
 }
 
 void arm_get(){
