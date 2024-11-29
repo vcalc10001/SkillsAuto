@@ -10,8 +10,8 @@
 
 void default_constants(){
   // Each constant set is in the form of (maxVoltage, kP, kI, kD, startI).
-  chassis.set_drive_constants(10, 1.5, 0, 10, 0);
-  chassis.set_drive_exit_conditions(1.5, 10, 2500);
+  chassis.set_drive_constants(10, 1.2, 0, 2.0, 0);//1.5, 0, 10, 0);
+  chassis.set_drive_exit_conditions(0.1, 300, 3000);
 
   // Each exit condition set is in the form of (settle_error, settle_time, timeout).
   chassis.set_turn_constants(10, 0.8, 0, 0, 5);
