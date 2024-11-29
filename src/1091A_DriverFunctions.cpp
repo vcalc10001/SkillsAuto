@@ -30,7 +30,7 @@ void spinConveyorForward(void) {
     
     //When color sensor sees the the rings we want to reject, stop conveyor momentarily so that the ring flies off
     if(rejectRed) { //Reject Red Rings
-      if (myOptical.hue() < 25) {
+      if (myOptical.hue() < 25) { //Red Hue is generally around 20 or lower
         task::sleep(8); //Wait a bit before stopping conveyor
         intakeAndConveyor.stop();
         waitUntil((myOptical.hue() > 25));      
@@ -38,7 +38,7 @@ void spinConveyorForward(void) {
       }
     }
     else {  //Reject Blue Rings
-      if (myOptical.hue() > 150) {
+      if (myOptical.hue() > 150) {  //Blue Hue is generally 210 or higher
         task::sleep(8); //Wait a bit before stopping conveyor
         intakeAndConveyor.stop();
         waitUntil((myOptical.hue() < 150));      
@@ -74,7 +74,7 @@ void gotoReceiveRingPosition(void) {
 // Raise the Arm (when Up Button is pressed)
 void rotateArmForward(void) {
   arm.setStopping(brakeType::hold);
-  arm.setVelocity(60.0, percent); //Set velocity at 60% for scoring (above 55% RPM, torque drops)
+  arm.setVelocity(80.0, percent); //Above 60% RPM, torque drops (but we need speed too)
   while ((Controller1.ButtonUp.pressing() && armRotation.position(degrees) < 150.0)) {
     arm.spin(reverse);
   task::sleep(5);
