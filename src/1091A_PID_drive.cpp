@@ -86,6 +86,7 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
       DriveL.stop(hold);
       DriveR.stop(hold);
     }
+    task::sleep(5);
   }
 }
 

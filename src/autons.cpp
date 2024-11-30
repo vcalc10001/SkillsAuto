@@ -50,8 +50,8 @@ void drive_test(){
 // Turning Test
 void turn_test(){
   //turn_to_heading_large(120);
-  //turn_to_heading_medium(90);
-  turn_to_heading_small(45);
+  turn_to_heading_medium(90);
+  //turn_to_heading_small(45);
   //turn_to_heading_tiny(20);
   //turn_to_heading_tiny(30);
 }
@@ -62,8 +62,9 @@ void run_auto()
 {
   auto_started = true;
 
-  skills_auto();
-
+  //skills_auto();
+  //drive_test();
+  red_wp_auto();
   auto_started = false;
 }
 
@@ -164,13 +165,15 @@ void skills_auto() {
  
 }
 
+/// @brief Raise the am to receive ring
 void arm_get(){
   gotoReceiveRingPosition();
 }
 
 /// @brief Red Win Point Auto
 void red_wp_auto() {
-
+  chassis.drive_distance(-16);
+  turn_to_heading_large(90);
 }
 
 /**
