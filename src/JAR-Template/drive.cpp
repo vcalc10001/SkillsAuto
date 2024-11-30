@@ -306,16 +306,13 @@ void Drive::drive_distance(float distance, float heading, float drive_max_voltag
 
 void Drive::drive_distance(float distance, float heading, float drive_max_voltage, float heading_max_voltage, float drive_settle_error, float drive_settle_time, float drive_timeout, float drive_kp, float drive_ki, float drive_kd, float drive_starti, float heading_kp, float heading_ki, float heading_kd, float heading_starti) {
   PID drivePID(distance, drive_kp, drive_ki, drive_kd, drive_starti, drive_settle_error, drive_settle_time, drive_timeout);
-  DriveL.setPosition(0.0, vex::rotationUnits::deg);
-  DriveR.setPosition(0.0, vex::rotationUnits::deg);
-  odomY.resetPosition();
   //PID headingPID(reduce_negative_180_to_180(heading - get_absolute_heading()), heading_kp, heading_ki, heading_kd, heading_starti);
-  float start_average_position = 0.0; //(get_left_position_in()+get_right_position_in())/2.0;
+  float start_average_position = ForwardTracker_diameter*M_PI*R_ForwardTracker.position(degrees)/360.0; //(get_left_position_in()+get_right_position_in())/2.0;
   float average_position = start_average_position;
   float drive_error = distance;
 
-  while((drive_error >= drive_settle_error) || !drivePID.is_settled()){
-    average_position = ForwardTracker_diameter*M_PI*odomY.position(degrees)/360.0; //(get_left_position_in()+get_right_position_in())/2.0;
+  while((fabs(drive_error) >= fabs(drive_settle_error)) || !drivePID.is_settled()){
+    average_position = ForwardTracker_diameter*M_PI*R_ForwardTracker.position(degrees)/360.0; //(get_left_position_in()+get_right_position_in())/2.0;
     drive_error = distance+start_average_position-average_position;
     //float heading_error = reduce_negative_180_to_180(heading - get_absolute_heading());
     float drive_output = drivePID.compute(drive_error);
@@ -324,15 +321,13 @@ void Drive::drive_distance(float distance, float heading, float drive_max_voltag
     drive_output = clamp(drive_output, -drive_max_voltage, drive_max_voltage);
     //heading_output = clamp(heading_output, -heading_max_voltage, heading_max_voltage);
 
-    //If the newly calculated drivevolts is less than 2, then make it 2 (with the same direction as what we originally started driving with)
-    if(fabs(drive_output) < 2.5)
-    {
-      if(drive_max_voltage < 0.0) drive_output = -2.5;
-      else drive_output = 2.5;
-    }
+    //If the newly calculated drivevolts is less than 2.5, then make it 2.5 (while maintaining the +ve/-ve sign)
+    if((drive_output >= 0.0) && (drive_output < 2.5)) drive_output = 2.5;
+    else if((drive_output < 0.0) && (drive_output > -2.5)) drive_output = -2.5;
+    else drive_output = drive_output;
 
     drive_with_voltage(drive_output+heading_output, drive_output-heading_output);
-    task::sleep(20); //was 10
+    task::sleep(5); //was 10
   }
   drive_stop(hold);
 }
