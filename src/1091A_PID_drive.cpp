@@ -115,10 +115,10 @@ void Drive::turn_to_heading_1091A_IQBase(float targetHeading, float turn_max_vol
     float integral = 0.0;
     float currentVolts = static_cast<float>(fabs(turn_max_voltage));
     long loopCount = 0;
-    double setTime = Brain.Timer.value();
+    double setTime = Brain.Timer.value()*1000.0;
     double gyroReadingDelayInMSec = 10.0;
 
-    while ((degreesTurned < degreesToTurn && (Brain.Timer.value() - setTime) < turn_timeout)) {
+    while ((degreesTurned < degreesToTurn && ((Brain.Timer.value()*1000.0) - setTime) < turn_timeout)) {
       loopCount++;
       if (isTurnLeft) drive_with_voltage(-currentVolts, currentVolts);  //For left turn, left side is -ve volts, Right side is +ve volts
       else drive_with_voltage(currentVolts, -currentVolts); //For right turn, Left side is +ve volts, Right side is -ve volts

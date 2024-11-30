@@ -24,6 +24,7 @@ public:
   float time_spent_settled = 0;
   float time_spent_running = 0;
   float update_period = 10;
+  double setTime = 0;
 
   PID(float error, float kp, float ki, float kd, float starti);
 

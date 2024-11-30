@@ -10,8 +10,8 @@
 
 void default_constants(){
   // Each constant set is in the form of (maxVoltage, kP, kI, kD, startI).
-  chassis.set_drive_constants(10, 1.2, 0, 2.0, 0);//1.5, 0, 10, 0);
-  chassis.set_drive_exit_conditions(0.1, 300, 3000);
+  chassis.set_drive_constants(12, 1.3, 0.0, 2.3, 0);//1.5, 0, 10, 0);
+  chassis.set_drive_exit_conditions(0.1, 20, 3000);
 
   // Each exit condition set is in the form of (settle_error, settle_time, timeout).
   chassis.set_turn_constants(10, 0.8, 0, 0, 5);
@@ -43,7 +43,7 @@ void run_auto()
 {
   auto_started = true;
 
-  skills_auto();
+  drive_test();
 
   auto_started = false;
 }
@@ -65,27 +65,27 @@ inline void turn_to_heading_large(float targetHeading) { chassis.turn_to_heading
 /* Bunch of pre-tuned Driving functions */
 /* ************************************ */
 inline void drive_distance_small(float distance) {
-  chassis.drive_distance(distance, chassis.get_absolute_heading(), \
+  chassis.drive_distance_1091A(distance, chassis.get_absolute_heading(), \
       /* driving volts, heading volts */ 11, 11, \
-      /* tolerance, settle time, timeout */ 0.1, 100, 3000, \
-      /* Driving kp, ki, kd, driving starti */ 0.95, 0.2, 1.5, 0.25*distance, \
-      /* Heading kp, ki, kd, driving starti */ 0, 0, 0, 0);
+      /* tolerance, settle time, timeout */ 0.1, 20, 3000, \
+      /* Driving kp, ki, kd, driving starti */ 0.95, 0.0, 2.5, 0.25*distance, \
+      /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
 inline void drive_distance_medium(float distance) {
-  chassis.drive_distance(distance, chassis.get_absolute_heading(), \
+  chassis.drive_distance_1091A(distance, chassis.get_absolute_heading(), \
       /* driving volts, heading volts */ 12, 12, \
       /* tolerance, settle time, timeout */ 0.1, 150, 3000, \
       /* Driving kp, ki, kd, driving starti */ 0.95, 0.2, 1.5, 0.25*distance, \
-      /* Heading kp, ki, kd, driving starti */ 0, 0, 0, 0);
+      /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
 inline void drive_distance_large(float distance) {
-  chassis.drive_distance(distance, chassis.get_absolute_heading(), \
+  chassis.drive_distance_1091A(distance, chassis.get_absolute_heading(), \
       /* driving volts, heading volts */ 12, 12, \
       /* tolerance, settle time, timeout */ 0.25, 300, 3000, \
-      /* Driving kp, ki, kd, driving starti */ 1.4, 0.2, 4.0, 0.1*distance, \
-      /* Heading kp, ki, kd, driving starti */ 0, 0, 0, 0);
+      /* Driving kp, ki, kd, driving starti */ 0.90, 0.0, 2.5, 0.1*distance, \
+      /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
 void skills_auto() {
@@ -102,23 +102,29 @@ void skills_auto() {
 
 
   chassis.drive_timeout=400;
-  chassis.drive_distance(5);
+  chassis.drive_distance(20);
   turn_to_heading_large(255);
   chassis.drive_timeout=700;
-  chassis.drive_distance(-10);
+  chassis.drive_distance(-35);
   chassis.drive_max_voltage=3;
-  chassis.drive_distance(-6);
+  chassis.drive_distance(-9);
+  /*
   mogo.set(true);
   wait(1,seconds);
-  turn_to_heading_medium(8);
+  turn_to_heading_medium(13);
+  
   chassis.drive_max_voltage=9;
   intake.spin(forward);
   conveyor.spin(forward);
-  chassis.drive_distance(23);
+  chassis.drive_settle_time=500;
+  chassis.drive_timeout=200;
+  turn_to_heading_medium(20);
+  /*
   wait(0.2,seconds);
  // arm_get(); 
   turn_to_heading_tiny(16);
   chassis.drive_distance(40);
+  */
 
 }
 
@@ -134,11 +140,15 @@ void arm_get(){
 
 //Driving Test
 void drive_test(){
+
+  //chassis.drive_distance(6);
+  //wait(1,seconds);
+  //chassis.drive_distance(18);
+  //wait(1,seconds);
+  chassis.drive_distance(30.0, chassis.get_absolute_heading(), 12, 12, 0.2, 150, 6000, 1.4, 0, 2.5, 0, 0, 0, 0, 0);
+  //wait(1,seconds);
+  //chassis.drive_distance(6);
   //drive_distance_small(6);
-  //drive_distance_medium(12);
-  //drive_distance_medium(18);
-  //drive_distance_large(24);
-  drive_distance_large(36);
 }
 
 // Turning Test

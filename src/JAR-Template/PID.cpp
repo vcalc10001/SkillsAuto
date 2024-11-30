@@ -90,6 +90,7 @@ float settle_error, float settle_time, float timeout, float update_period) :
  */
 
 float PID::compute(float error){
+  if(setTime == 0.0) setTime = Brain.Timer.value()*1000.0;
   if (fabs(error) < starti){
     accumulated_error+=error;
   }
@@ -108,7 +109,7 @@ float PID::compute(float error){
     time_spent_settled = 0;
   }
 
-  time_spent_running+=10;
+  //time_spent_running+=10;
 
   return output;
 }
@@ -123,11 +124,11 @@ float PID::compute(float error){
  */
 
 bool PID::is_settled(){
-  if (time_spent_running>timeout && timeout != 0){
+  if (timeout != 0 && (((Brain.Timer.value()*1000.0) - setTime) >= timeout)){
     return(true);
   } // If timeout does equal 0, the move will never actually time out. Setting timeout to 0 is the 
     // equivalent of setting it to infinity.
-  if (time_spent_settled>settle_time){
+  if (time_spent_settled>settle_time){ 
     return(true);
   }
   return(false);
