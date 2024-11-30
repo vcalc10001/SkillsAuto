@@ -4,6 +4,10 @@
 /* 1091A's implementation of PID functions on top of the JAR Template Drive class */
 /* ****************************************************************************** */
 
+
+/* ************** */
+/* Turn Functions */
+/* ************** */
 void Drive::turn_to_heading_1091A(float targetHeading) {
   turn_to_heading_1091A(targetHeading, turn_max_voltage, turn_settle_error, turn_timeout, turn_kp, turn_ki, turn_kd, turn_starti);
 }
@@ -25,7 +29,7 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
   if ((isDiffLT180 && isTargetLTCurrent) || (!isDiffLT180 && !isTargetLTCurrent)) isTurnLeft = false;  // Turn Right
   else isTurnLeft = true; //Turn Left
 
-  ///degreesToTurn = degreesToTurn - turn_settle_error;
+  //degreesToTurn = degreesToTurn - turn_settle_error;
 
   if (degreesToTurn > 0.0) {
     Gyro.setRotation(0.0, degrees);
@@ -40,7 +44,7 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
     double gyroReadingDelayInMSec = 10.0;
 
     //While we have not timed out, and have not yet turned enough (or have turned too much)
-    while ((Brain.Timer.value() - setTime) < turn_timeout \
+    while ((Brain.Timer.value() - setTime)*1000.0 < turn_timeout \
             && ((degreesTurned < (degreesToTurn - turn_settle_error)) \
              || (degreesTurned > (degreesToTurn + turn_settle_error)))) {
     //while ((degreesTurned < degreesToTurn && (Brain.Timer.value() - setTime) < turn_timeout)) {
@@ -85,6 +89,34 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
   }
 }
 
+
+/* ************** */
+/* Drive Functions */
+/* ************** */
+void Drive::drive_distance_1091A(float distance, float heading, float drive_max_voltage, float heading_max_voltage, float drive_settle_error, float drive_settle_time, float drive_timeout, float drive_kp, float drive_ki, float drive_kd, float drive_starti, float heading_kp, float heading_ki, float heading_kd, float heading_starti){
+  PID drivePID(distance, drive_kp, drive_ki, drive_kd, drive_starti, drive_settle_error, drive_settle_time, drive_timeout);
+
+  float start_average_position = ForwardTracker_diameter*M_PI*R_ForwardTracker.position(degrees)/360.0;
+  float average_position = start_average_position;
+  float drive_error = distance;
+  
+  while((fabs(drive_error) >= fabs(drive_settle_error)) || !drivePID.is_settled()){
+    average_position = ForwardTracker_diameter*M_PI*R_ForwardTracker.position(degrees)/360.0;
+    float drive_remining = (distance+start_average_position-average_position);
+    float drive_volts = (drivePID.compute(drive_remining) * drive_max_voltage)/distance;
+
+    drive_volts = clamp(drive_volts, -drive_max_voltage, drive_max_voltage);
+    //If the newly calculated drivevolts is less than 2.5, then make it 2.5 (while maintaining the +ve/-ve sign)
+    if((drive_volts >= 0.0) && (drive_volts < 2.5)) drive_volts = 2.5;
+    else if((drive_volts < 0.0) && (drive_volts > -2.5)) drive_volts = -2.5;
+
+    drive_with_voltage(drive_volts, drive_volts);
+    task::sleep(5);
+  }
+  drive_stop(hold);
+}
+
+/*
 void Drive::turn_to_heading_1091A_IQBase(float targetHeading, float turn_max_voltage, float turn_settle_error, float turn_timeout, float turn_kp, float turn_ki, float turn_kd, float turn_starti) {
   float startingHeading = Gyro.heading();
 
@@ -160,3 +192,4 @@ void Drive::turn_to_heading_1091A_IQBase(float targetHeading, float turn_max_vol
     }
   }
 }
+*/

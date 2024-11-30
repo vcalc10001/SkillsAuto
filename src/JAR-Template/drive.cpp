@@ -324,34 +324,9 @@ void Drive::drive_distance(float distance, float heading, float drive_max_voltag
     //If the newly calculated drivevolts is less than 2.5, then make it 2.5 (while maintaining the +ve/-ve sign)
     if((drive_output >= 0.0) && (drive_output < 2.5)) drive_output = 2.5;
     else if((drive_output < 0.0) && (drive_output > -2.5)) drive_output = -2.5;
-    else drive_output = drive_output;
 
     drive_with_voltage(drive_output+heading_output, drive_output-heading_output);
     task::sleep(5); //was 10
-  }
-  drive_stop(hold);
-}
-
-void Drive::drive_distance_1091A(float distance, float heading, float drive_max_voltage, float heading_max_voltage, float drive_settle_error, float drive_settle_time, float drive_timeout, float drive_kp, float drive_ki, float drive_kd, float drive_starti, float heading_kp, float heading_ki, float heading_kd, float heading_starti){
-  PID drivePID(distance, drive_kp, drive_ki, drive_kd, drive_starti, drive_settle_error, drive_settle_time, drive_timeout);
-  DriveL.setPosition(0.0, deg);
-  DriveR.setPosition(0.0, deg);
-  float start_average_position = 0.0;
-  float average_position = start_average_position;
-  while(!drivePID.is_settled()) {
-    average_position = get_left_position_in();//(get_left_position_in()+get_right_position_in())/2.0;
-    float drive_remining = (distance+start_average_position-average_position);
-    float drive_volts = (drivePID.compute(drive_remining) * drive_max_voltage)/distance;
-
-    drive_volts = clamp(drive_volts, -drive_max_voltage, drive_max_voltage);
-    //If the newly calculated drivevolts is less than 2, then make it 2 (with the same direction as what we originally started driving with)
-    if(fabs(drive_volts) < 3.0)
-    {
-      if(drive_max_voltage < 0.0) drive_volts = -3.0;
-      else drive_volts = 3.0;
-    }
-    drive_with_voltage(drive_volts, drive_volts);
-    task::sleep(2);
   }
   drive_stop(hold);
 }

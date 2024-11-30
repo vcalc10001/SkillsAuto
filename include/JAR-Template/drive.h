@@ -156,7 +156,10 @@ public:
   /* 1091A specific implementations */
   void turn_to_heading_1091A(float targetHeading);
   void turn_to_heading_1091A(float targetHeading, float turn_max_voltage, float turn_settle_error, float turn_timeout, float turn_kp, float turn_ki, float turn_kd, float turn_starti);
-  void turn_to_heading_1091A_IQBase(float targetHeading, float turn_max_voltage, float turn_settle_error, float turn_timeout, float turn_kp, float turn_ki, float turn_kd, float turn_starti);
+  //void turn_to_heading_1091A_IQBase(float targetHeading, float turn_max_voltage, float turn_settle_error, float turn_timeout, float turn_kp, float turn_ki, float turn_kd, float turn_starti);
 
+  void inline drive_distance_1091A(float distance) {drive_distance_1091A(distance, get_absolute_heading(), drive_max_voltage, heading_max_voltage, drive_settle_error, drive_settle_time, drive_timeout, drive_kp, drive_ki, drive_kd, drive_starti, heading_kp, heading_ki, heading_kd, heading_starti); }
+  void inline drive_distance_1091A(float distance, float drive_max_voltage, float drive_settle_error, float drive_settle_time, float drive_kp, float drive_ki, float drive_kd, float drive_starti)
+    {drive_distance_1091A(distance, get_absolute_heading(), drive_max_voltage, heading_max_voltage, drive_settle_error, drive_settle_time, drive_timeout, drive_kp, drive_ki, drive_kd, drive_starti, heading_kp, heading_ki, heading_kd, heading_starti); }
   void drive_distance_1091A(float distance, float heading, float drive_max_voltage, float heading_max_voltage, float drive_settle_error, float drive_settle_time, float drive_timeout, float drive_kp, float drive_ki, float drive_kd, float drive_starti, float heading_kp, float heading_ki, float heading_kd, float heading_starti);
 };
