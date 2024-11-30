@@ -91,7 +91,7 @@ float settle_error, float settle_time, float timeout, float update_period) :
 
 float PID::compute(float error){
   //Set the start time of the PID the first time compute is called
-  if(setTime == 0.0) setTime = Brain.Timer.value();
+  if(setTime < 0.0) setTime = Brain.Timer.value();
 
   // IOnly start integrating once we error drops below starti
   if (fabs(error) < starti){

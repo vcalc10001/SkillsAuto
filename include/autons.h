@@ -26,6 +26,8 @@ void EBlueLeft();
 
 void skills_auto();
 
+void red_wp_auto();
+
 /* ************************************ */
 /* Bunch of pre-tuned Driving functions */
 /* ************************************ */

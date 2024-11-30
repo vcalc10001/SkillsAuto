@@ -24,7 +24,7 @@ public:
   float time_spent_settled = 0;
   float time_spent_running = 0;
   float update_period = 10;
-  double setTime = 0.0;
+  double setTime = -0.0001; //Sert an initial -ve setTime. First time compute is called, a negative value indicates that this has not been set
 
   PID(float error, float kp, float ki, float kd, float starti);
 

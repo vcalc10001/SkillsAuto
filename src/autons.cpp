@@ -39,6 +39,24 @@ void odom_constants(){
   chassis.drive_min_voltage = 0;
 }
 
+
+//Driving Test
+void drive_test(){
+  chassis.drive_distance(12);
+  wait(1,seconds);
+  chassis.drive_distance(-6);
+}
+
+// Turning Test
+void turn_test(){
+  //turn_to_heading_large(120);
+  //turn_to_heading_medium(90);
+  turn_to_heading_small(45);
+  //turn_to_heading_tiny(20);
+  //turn_to_heading_tiny(30);
+}
+
+
 /* Funtion registered to run when Auto is started*/
 void run_auto()
 {
@@ -89,8 +107,9 @@ inline void drive_distance_large(float distance) {
       /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
+/// @brief Skills Auto
 void skills_auto() {
- conveyor.setVelocity(100,percent);
+  conveyor.setVelocity(100,percent);
   conveyor.setMaxTorque(100,percent);
   intake.setVelocity(100, percent);
   intake.setMaxTorque(100, percent);
@@ -149,26 +168,14 @@ void arm_get(){
   gotoReceiveRingPosition();
 }
 
-//Driving Test
-void drive_test(){
-  chassis.drive_distance(12);
-  wait(1,seconds);
-  chassis.drive_distance(-6);
-}
+/// @brief Red Win Point Auto
+void red_wp_auto() {
 
-// Turning Test
-void turn_test(){
-  //turn_to_heading_large(120);
-  //turn_to_heading_medium(90);
-  turn_to_heading_small(45);
-  //turn_to_heading_tiny(20);
-  //turn_to_heading_tiny(30);
 }
 
 /**
  * Should swing in a fun S shape.
  */
-
 void swing_test(){
   chassis.left_swing_to_angle(90);
   //chassis.right_swing_to_angle(0);

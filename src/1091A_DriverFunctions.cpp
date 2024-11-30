@@ -75,7 +75,7 @@ void gotoReceiveRingPosition(void) {
 void rotateArmForward(void) {
   arm.setStopping(brakeType::hold);
   arm.setVelocity(80.0, percent); //Above 60% RPM, torque drops (but we need speed too)
-  while ((Controller1.ButtonUp.pressing() && armRotation.position(degrees) < 150.0)) {
+  while ((Controller1.ButtonUp.pressing() && armRotation.position(degrees) < 147.5)) {  //was 150 degrees
     arm.spin(reverse);
   task::sleep(5);
   }
