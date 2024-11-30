@@ -11,13 +11,14 @@
 void default_constants(){
   // Each constant set is in the form of (maxVoltage, kP, kI, kD, startI).
   chassis.set_drive_constants(12, 0.95, 0.0, 5.0, 2);//1.5, 0, 10, 0);
-  chassis.set_drive_exit_conditions(0.1, 0, 5000);
+  chassis.set_drive_exit_conditions(0.1, 0, 3000);
 
   // Each exit condition set is in the form of (settle_error, settle_time, timeout).
   chassis.set_turn_constants(10, 0.8, 0, 0, 5);
   chassis.set_turn_exit_conditions(1.5, 30, 2000); // Last one was 1, 300, 3000
 
   chassis.set_heading_constants(6, .4, 0, 1, 0);
+
   chassis.set_swing_constants(6, .3, .001, 2, 15);
   chassis.set_swing_exit_conditions(1, 300, 3000);
 
@@ -43,7 +44,7 @@ void run_auto()
 {
   auto_started = true;
 
-  drive_test();
+  skills_auto();
 
   auto_started = false;
 }
@@ -91,6 +92,10 @@ inline void drive_distance_large(float distance) {
 void skills_auto() {
  conveyor.setVelocity(100,percent);
   conveyor.setMaxTorque(100,percent);
+  intake.setVelocity(100, percent);
+  intake.setMaxTorque(100, percent);
+  arm.setVelocity(100, percent);
+  arm.setMaxTorque(100,percent);
   chassis.set_heading(0);
   
   chassis.drive_max_voltage=9;
@@ -102,61 +107,57 @@ void skills_auto() {
 
 
   chassis.drive_timeout=400;
-  chassis.drive_distance(20);
+  chassis.drive_distance(3.8);
   turn_to_heading_large(255);
-  chassis.drive_timeout=700;
-  chassis.drive_distance(-35);
+  chassis.drive_timeout=2000;
+  chassis.turn_timeout=900;
+  chassis.drive_distance(-8);
   chassis.drive_max_voltage=3;
   chassis.drive_distance(-9);
-  /*
+
+  chassis.drive_max_voltage=8;
   mogo.set(true);
   wait(1,seconds);
   turn_to_heading_medium(13);
   
   chassis.drive_max_voltage=9;
+  chassis.turn_max_voltage=12;
   intake.spin(forward);
   conveyor.spin(forward);
   chassis.drive_settle_time=500;
-  chassis.drive_timeout=200;
-  turn_to_heading_medium(20);
-  /*
-  wait(0.2,seconds);
- // arm_get(); 
-  turn_to_heading_tiny(16);
-  chassis.drive_distance(40);
-  */
+ 
+  turn_to_heading_tiny(10);
+  chassis.drive_timeout=750;
+  chassis.drive_distance(20);
+  turn_to_heading_tiny(17);
+  arm.setStopping(brakeType::hold);
+  arm.setVelocity(50.0, percent);
+  wait(1.5, seconds);
+  while (armRotation.position(degrees) < 24.0) {  //was 32
+    arm.spin(reverse);
+    task::sleep(5);
+  }
+  arm.stop(hold);
+  turn_to_heading_tiny(34);
+  chassis.drive_distance(37);
 
+  //turn_to_heading_tiny(28);
+ 
 }
 
 void arm_get(){
-  arm.spin(forward);
-  wait(0.24, seconds);
-  arm.stop();
-  conveyor.spin(forward);
-  intake.spin(forward);
-  wait(0.9, seconds);
-  conveyor.stop();
+  gotoReceiveRingPosition();
 }
 
 //Driving Test
 void drive_test(){
-
-  //chassis.drive_distance(6);
-  //wait(1,seconds);
-  //chassis.drive_distance(18);
-  //wait(1,seconds);
-  chassis.drive_distance(30);
-  //wait(1,seconds);
-  //chassis.drive_distance(6);
-  //drive_distance_small(6);
+  chassis.drive_distance(12);
+  wait(1,seconds);
+  chassis.drive_distance(-6);
 }
 
 // Turning Test
 void turn_test(){
-  chassis.set_turn_constants(10, 0.92, 1.0, 0.0, 2);
-  chassis.set_turn_exit_conditions(1.5, 30, 2000); // Last one was 1, 300, 3000
-
-  //Heading, Voltage, tolerance, timeout, kp, ki, kd, when to start integrating 
   //turn_to_heading_large(120);
   //turn_to_heading_medium(90);
   turn_to_heading_small(45);
