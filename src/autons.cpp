@@ -56,22 +56,6 @@ void turn_test(){
   //turn_to_heading_tiny(30);
 }
 
-double setTime = 0.0;
-
-/* Funtion registered to run when Auto is started*/
-void run_auto()
-{
-  setTime = Brain.Timer.value();
-  auto_started = true;
-
-  //skills_auto();
-  //drive_test();
-  red_wp_auto();
-  auto_started = false;
-  Brain.Screen.printAt(5, 140, "Total Time Spent:");
-  Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - setTime);
-}
-
 /* ********************************* */
 /* Bunch of pre-tuned turn functions */
 /* ********************************* */
@@ -112,11 +96,30 @@ inline void drive_distance_large(float distance) {
       /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
+
+double setTime = 0.0;
+
+/* Funtion registered to run when Auto is started*/
+void run_auto()
+{
+  setTime = Brain.Timer.value();
+  auto_started = true;
+
+  skills_auto();
+  //drive_test();
+  //red_wp_auto();
+  auto_started = false;
+  Brain.Screen.printAt(5, 140, "Total Time Spent:");
+  Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - setTime);
+}
+
 void setup_auto() {
   conveyor.setVelocity(100,percent);
   conveyor.setMaxTorque(100,percent);
+  conveyor.setStopping(coast);
   intake.setVelocity(100, percent);
   intake.setMaxTorque(100, percent);
+  intake.setStopping(coast);
   arm.setVelocity(100, percent);
   arm.setMaxTorque(100,percent);
   chassis.set_heading(0.0);
@@ -141,46 +144,81 @@ void skills_auto() {
   setup_auto();
   chassis.drive_max_voltage=9;
   chassis.turn_max_voltage=9;
+  arm.setMaxTorque(100,percent);
+  arm.setVelocity(100,percent);
+  
   
   shoot_alliance_ring();
 
-  chassis.drive_timeout=400;
+  //chassis.drive_timeout=400;
   chassis.drive_distance(3.8);
   turn_to_heading_large(255);
   chassis.drive_timeout=2000;
   chassis.turn_timeout=900;
   chassis.drive_distance(-8);
   chassis.drive_max_voltage=3;
-  chassis.drive_distance(-9);
+  chassis.drive_distance(-11);
 
+  //Go get the fist ring
   chassis.drive_max_voltage=8;
-  mogo.set(true);
-  wait(1,seconds);
-  turn_to_heading_medium(13);
+  clampMogo(); //mogo.set(true);
+  task::sleep(50);
+  turn_to_heading_medium(0);
   
-  chassis.drive_max_voltage=9;
-  chassis.turn_max_voltage=12;
-  intake.spin(forward);
-  conveyor.spin(forward);
-  chassis.drive_settle_time=500;
- 
-  turn_to_heading_tiny(10);
-  chassis.drive_timeout=750;
-  chassis.drive_distance(20);
-  turn_to_heading_tiny(17);
-  arm.setStopping(brakeType::hold);
-  arm.setVelocity(50.0, percent);
-  wait(1.5, seconds);
-  while (armRotation.position(degrees) < 24.0) {  //was 32
-    arm.spin(reverse);
-    task::sleep(5);
-  }
-  arm.stop(hold);
-  turn_to_heading_tiny(34);
-  chassis.drive_distance(37);
+  chassis.drive_max_voltage=11;
+  chassis.turn_max_voltage=10.5;
+  intakeAndConveyor.spin(forward); 
+  chassis.drive_distance(27.5);
+  task::sleep(50);
+  chassis.drive_distance(-7); //drive back a bit to make sure we miss the ladder edge when we go to get the next disk
 
-  //turn_to_heading_tiny(28);
+  //go grab the disk into the arm
+  turn_to_heading_tiny(26.0);  //was 25.25
+  arm_get();
+  chassis.drive_distance(50);
+  chassis.drive_max_voltage=8;
+  chassis.drive_distance(8);
+  task::sleep(100);//wait(0.1,seconds);
+
  
+  //aligning to wall stake
+  chassis.drive_with_voltage(6, -6);  //First turn to the left bit so we can drive back and turn more easily (and miss the ladder)
+  task::sleep(75);
+  chassis.drive_stop(hold);
+  chassis.drive_distance(-23.0);
+  turn_to_heading_small(88.0);  //turn towards the wall
+  chassis.drive_with_voltage(4, 4); //drive to the wall
+  task::sleep(800); //wait to get to the wall  
+  chassis.drive_stop(brake);
+
+  //placing on disk on wall stake
+  arm.setVelocity(80.0, pct);
+  conveyor.stop(coast);  //stop conveyor first
+  arm.spin(reverse);  //spin arm o score disk
+  task::sleep(1000);
+  //chassis.drive_with_voltage(6, 6); //drive up a bit more to try to get the ing onto the stake
+  //task::sleep(300);
+  //chassis.drive_stop(coast);
+
+  //Wall stake done, now start spinning arm back down
+  arm.setVelocity(100, percent);
+  arm.setStopping(coast);
+  arm.spin(forward);  
+
+ 
+ //Now go get the next 4 rings
+ //First, drive back, then turn to face the 4 rings in a row and then drive to pacman them up
+ chassis.drive_max_voltage = 12.0;
+ chassis.drive_distance(-11.0);
+ intakeAndConveyor.spin(forward); //Spin conveyor and intake (this will also score the disk already in intake onto the mogo)
+ turn_to_heading_medium(176.5);
+ 
+ while(armRotation.position(degrees) > 15.0) {task::sleep(5);}  //wait for arm to get back down
+ arm.stop(coast); //stop the arm (should be done coming back down by now)
+ //Now drive forwad while intaking (drive a bit slow so rings can get on the mogo)
+ chassis.drive_max_voltage = 5.5;
+ chassis.drive_distance(58);
+
 }
 
 
