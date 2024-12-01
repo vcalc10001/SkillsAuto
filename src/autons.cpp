@@ -240,13 +240,12 @@ void red_wp_auto() {
   chassis.drive_distance(12);
   task::sleep(400); //wait a bit to get ring and score it befoe doing the next thing 
 
-  //Now go touch the ladder
+  //Now turn towads ladder
   chassis.drive_distance(-6);
   arm.setStopping(hold);
-//  arm.spinToPosition(135.0, deg, false);
   turn_to_heading_large(170.0);
 
-  //Drive to the Ladder
+  //Drive to the Ladder while raising the arm
   chassis.drive_stop(coast);
   chassis.drive_with_voltage(3.5, 3.5);
   while(armRotation.position(degrees) < 120.0) {
@@ -255,6 +254,7 @@ void red_wp_auto() {
   }
   arm.stop(hold);
 
+  //Keep diving to the ladder till we run out of time, then stop in coast mode
   while((Brain.Timer.value() - setTime) < 14.995) {
     task::sleep(5);
     //Do Nothing
