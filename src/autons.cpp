@@ -244,33 +244,24 @@ void red_wp_auto() {
   chassis.drive_distance(-6);
   arm.setStopping(hold);
 //  arm.spinToPosition(135.0, deg, false);
-  turn_to_heading_large(200);
-
-  //Stop intake and conveyor
-  intakeAndConveyor.stop(brakeType::coast);
+  turn_to_heading_large(170.0);
 
   //Drive to the Ladder
   chassis.drive_stop(coast);
-  chassis.drive_with_voltage(6, 6);
-  // while(armRotation.position(degrees) < 100.0) {
-  //   arm.spin(reverse);
-  //   task::sleep(5);
-  // }
-  // arm.stop(hold);
+  chassis.drive_with_voltage(3.5, 3.5);
+  while(armRotation.position(degrees) < 120.0) {
+     arm.spin(reverse);
+     task::sleep(5);
+  }
+  arm.stop(hold);
 
-  while((Brain.Timer.value() - setTime) < 14.970) {
+  while((Brain.Timer.value() - setTime) < 14.995) {
     task::sleep(5);
     //Do Nothing
   }
+  //Stop intake and conveyor
+  intakeAndConveyor.stop(brakeType::coast);
   chassis.drive_stop(coast);
-
-/*  This was the code to get the alliance ring first
-  // Now tun around to get ring and score it on mogo
-  turn_to_heading_large(0);
-  chassis.drive_max_voltage = 12.0; //speed up again
-  chassis.drive_distance(21);
-  task::sleep(200); //wait a bit to get ring and score it befoe turning towards the neutral zone line 
-*/
 }
 
 /**
