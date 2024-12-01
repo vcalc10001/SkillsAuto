@@ -48,3 +48,6 @@ void turn_to_heading_small(float targetHeading);
 void turn_to_heading_medium(float targetHeading);
 //Use for large turns (> 120 degrees) - This is not yet tuned
 void turn_to_heading_large(float targetHeading);
+
+// Adjust heading after turning (call for situations when accuracy matters a lot)
+void adjustHeading(double targetHeading, double tolerance, double timeout);

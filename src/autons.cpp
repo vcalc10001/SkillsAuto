@@ -56,18 +56,133 @@ void turn_test(){
   //turn_to_heading_tiny(30);
 }
 
+/**
+ * Should swing in a fun S shape.
+ */
+void swing_test(){
+  chassis.left_swing_to_angle(90);
+  //chassis.right_swing_to_angle(0);
+}
+
+/**
+ * A little of this, a little of that; it should end roughly where it started.
+ */
+
+void full_test(){
+  chassis.drive_distance(24);
+  chassis.turn_to_angle(-45);
+  chassis.drive_distance(-36);
+  chassis.right_swing_to_angle(-90);
+  chassis.drive_distance(24);
+  chassis.turn_to_angle(0);
+}
+
+/**
+ * Doesn't drive the robot, but just prints coordinates to the Brain screen 
+ * so you can check if they are accurate to life. Push the robot around and
+ * see if the coordinates increase like you'd expect.
+ */
+
+void odom_test(){
+  odom_constants();
+  chassis.set_coordinates(0, 0, 0);
+  while(1){
+    Brain.Screen.clearScreen();
+    Brain.Screen.printAt(5,20, "X: %f", chassis.get_X_position());
+    Brain.Screen.printAt(5,40, "Y: %f", chassis.get_Y_position());
+    Brain.Screen.printAt(5,60, "Heading: %f", chassis.get_absolute_heading());
+    Brain.Screen.printAt(5,80, "ForwardTracker: %f", chassis.get_ForwardTracker_position());
+    Brain.Screen.printAt(5,100, "SidewaysTracker: %f", chassis.get_SidewaysTracker_position());
+    task::sleep(1000);
+  }
+}
+
+/**
+ * Should end in the same place it began, but the second movement
+ * will be curved while the first is straight.
+ */
+
+void tank_odom_test(){
+  odom_constants();
+  chassis.set_coordinates(0, 0, 0);
+  chassis.turn_to_point(24, 24);
+  chassis.drive_to_point(24,24);
+  chassis.drive_to_point(0,0);
+  chassis.turn_to_angle(0);
+}
+
+/**
+ * Drives in a square while making a full turn in the process. Should
+ * end where it started.
+ */
+
+void holonomic_odom_test(){
+  odom_constants();
+  chassis.set_coordinates(0, 0, 0);
+  chassis.holonomic_drive_to_pose(0, 18, 90);
+  chassis.holonomic_drive_to_pose(18, 0, 180);
+  chassis.holonomic_drive_to_pose(0, 18, 270);
+  chassis.holonomic_drive_to_pose(0, 0, 0);
+}
+
+
 /* ********************************* */
 /* Bunch of pre-tuned turn functions */
 /* ********************************* */
 //Use for tiny turns (less than 30 degrees)
+/// @brief Make tiny turns.  Use for turns less than 30 degrees
+/// @param targetHeading heading that we want to end up at
 inline void turn_to_heading_tiny(float targetHeading) { chassis.turn_to_heading_1091A(targetHeading, 7.25, 1.0, 2000, 0.64, 0, 0.40, 5);}
-//Use for small turns (30-60 degrees) - Tuned to 45
+
+/// @brief Make small turns.  Use for turns 30-60 degrees - Tuned to 45
+/// @param targetHeading heading that we want to end up at
 inline void turn_to_heading_small(float targetHeading) { chassis.turn_to_heading_1091A(targetHeading, 10, 1.0, 2000, 0.64, 0, 0.4, 5);}
-//Use for medium turns (60-120 degrees) - tuned to 90
+
+/// @brief Make medium turns.  Use for turns 60-120 degrees - tuned to 90
+/// @param targetHeading heading that we want to end up at
 inline void turn_to_heading_medium(float targetHeading) {chassis.turn_to_heading_1091A(targetHeading, 12, 1.0, 1500, 0.78, 0.05, 0.80, 5); }
-//Use for large turns (> 120 degrees) 
+
+/// @brief Make large turns > 120 degrees
+/// @param targetHeading heading that we want to end up at
 inline void turn_to_heading_large(float targetHeading) { chassis.turn_to_heading_1091A(targetHeading, 12, 1.0, 1500, 0.90, 0.05, 0.85, 5); }
 
+
+/// @brief adjust the heading after a turn.  Use after calling one of the turn functions when we need precise turns
+/// @param targetHeading heading that we want to end up at
+/// @param tolerance How much error in the final heading we will accept
+/// @param timeout timeout for the function in milliseconds
+void adjustHeading(double targetHeading, double tolerance, double timeout) {
+  double ahTime = Brain.Timer.value();
+
+  float startingHeading = chassis.Gyro.heading();
+
+  bool isTargetLTCurrent = targetHeading < startingHeading;
+  bool isTurnLeft = false;
+
+  //Figure out how many degrees to turn
+  float degreesToTurn = fabs(static_cast<float>(startingHeading - targetHeading));
+  bool isDiffLT180 = degreesToTurn < 180.0;
+
+  //If degrees to turn is >180, then normalize it to the opposite angle
+  if (!isDiffLT180) degreesToTurn = fabs(static_cast<float>(360.0 - degreesToTurn));
+
+  //Figure out whether to turn left or right
+  if ((isDiffLT180 && isTargetLTCurrent) || (!isDiffLT180 && !isTargetLTCurrent)) isTurnLeft = false;  // Turn Right
+  else isTurnLeft = true; //Turn Left
+
+  if (degreesToTurn > 0.2) {
+    chassis.Gyro.setRotation(0.0, degrees);
+
+    while(((Brain.Timer.value() - ahTime)*1000 < timeout) && ((chassis.Gyro.rotation(degrees) < degreesToTurn -tolerance) || (chassis.Gyro.rotation(degrees) > degreesToTurn + tolerance)))
+    {
+      if (isTurnLeft) chassis.drive_with_voltage(-3.0, 3.0);
+      else chassis.drive_with_voltage(3.0, -3.0);
+
+      task::sleep(2);
+    }
+    chassis.drive_stop(brake);
+  }
+}
 
 /* ************************************ */
 /* Bunch of pre-tuned Driving functions */
@@ -97,12 +212,12 @@ inline void drive_distance_large(float distance) {
 }
 
 
-double setTime = 0.0;
+double autonStartTime = 0.0;
 
 /* Funtion registered to run when Auto is started*/
 void run_auto()
 {
-  setTime = Brain.Timer.value();
+  autonStartTime = Brain.Timer.value();
   auto_started = true;
 
   skills_auto();
@@ -110,7 +225,7 @@ void run_auto()
   //red_wp_auto();
   auto_started = false;
   Brain.Screen.printAt(5, 140, "Total Time Spent:");
-  Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - setTime);
+  Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - autonStartTime);
 }
 
 void setup_auto() {
@@ -148,6 +263,7 @@ void skills_auto() {
   arm.setVelocity(100,percent);
   
   
+  /*
   shoot_alliance_ring();
 
   //chassis.drive_timeout=400;
@@ -209,17 +325,65 @@ void skills_auto() {
  //Now go get the next 4 rings
  //First, drive back, then turn to face the 4 rings in a row and then drive to pacman them up
  chassis.drive_max_voltage = 12.0;
- chassis.drive_distance(-11.0);
+ chassis.drive_distance(-9.5);
  intakeAndConveyor.spin(forward); //Spin conveyor and intake (this will also score the disk already in intake onto the mogo)
  turn_to_heading_medium(176.5);
  
  while(armRotation.position(degrees) > 15.0) {task::sleep(5);}  //wait for arm to get back down
  arm.stop(coast); //stop the arm (should be done coming back down by now)
  //Now drive forwad while intaking (drive a bit slow so rings can get on the mogo)
- chassis.drive_max_voltage = 5.5;
+ chassis.drive_max_voltage = 7.0;
+ chassis.drive_timeout = 4000;
  chassis.drive_distance(58);
+ wait(0.3,seconds);
+ chassis.drive_distance(-19);
+ turn_to_heading_tiny(135);
+ chassis.drive_distance(8);
+ turn_to_heading_large(335);
+ chassis.drive_distance(-10);
+ mogo.set(false);
+ wait(0.1,seconds);
+ 
+
+
+ //drive to mogo with 1 blue ring on it
+
+chassis.drive_max_voltage=9;
+ chassis.drive_distance(5);
+ turn_to_heading_medium(90);
+ intake.spin(forward);
+ chassis.drive_distance(-62,90);
+ chassis.drive_max_voltage=4;
+ turn_to_heading_tiny(77);
+ chassis.drive_distance(-13);
+ mogo.set(true); 
+ //picked
+ */
+ chassis.set_heading(77); //setting heading one time
+ mogo.set(true);
+ task::sleep(100);
+ turn_to_heading_medium(0);
+ intake.spin(forward);
+ conveyor.spin(forward);
+ chassis.drive_max_voltage=8;
+ chassis.drive_distance(15.5);
+ task::sleep(700);
+ arm_get();
+ turn_to_heading_small(334); 
+ chassis.drive_distance(42.5);
+ turn_to_heading_small(285);
+ chassis.drive_distance(.5);
+ task::sleep(1300);
+ conveyor.stop();
+ arm.setVelocity(100,percent);
+ arm.spin(reverse);  //spin arm o score disk
+ task::sleep(1000);
+ arm.stop();
+ //on stake?
+
 
 }
+
 
 
 /// @brief Red Win Point Auto
@@ -293,82 +457,13 @@ void red_wp_auto() {
   arm.stop(hold);
 
   //Keep diving to the ladder till we run out of time, then stop in coast mode
-  while((Brain.Timer.value() - setTime) < 14.995) {
+  while((Brain.Timer.value() - autonStartTime) < 14.995) {
     task::sleep(5);
     //Do Nothing
   }
   //Stop intake and conveyor
   intakeAndConveyor.stop(brakeType::coast);
   chassis.drive_stop(coast);
-}
-
-/**
- * Should swing in a fun S shape.
- */
-void swing_test(){
-  chassis.left_swing_to_angle(90);
-  //chassis.right_swing_to_angle(0);
-}
-
-/**
- * A little of this, a little of that; it should end roughly where it started.
- */
-
-void full_test(){
-  chassis.drive_distance(24);
-  chassis.turn_to_angle(-45);
-  chassis.drive_distance(-36);
-  chassis.right_swing_to_angle(-90);
-  chassis.drive_distance(24);
-  chassis.turn_to_angle(0);
-}
-
-/**
- * Doesn't drive the robot, but just prints coordinates to the Brain screen 
- * so you can check if they are accurate to life. Push the robot around and
- * see if the coordinates increase like you'd expect.
- */
-
-void odom_test(){
-  odom_constants();
-  chassis.set_coordinates(0, 0, 0);
-  while(1){
-    Brain.Screen.clearScreen();
-    Brain.Screen.printAt(5,20, "X: %f", chassis.get_X_position());
-    Brain.Screen.printAt(5,40, "Y: %f", chassis.get_Y_position());
-    Brain.Screen.printAt(5,60, "Heading: %f", chassis.get_absolute_heading());
-    Brain.Screen.printAt(5,80, "ForwardTracker: %f", chassis.get_ForwardTracker_position());
-    Brain.Screen.printAt(5,100, "SidewaysTracker: %f", chassis.get_SidewaysTracker_position());
-    task::sleep(1000);
-  }
-}
-
-/**
- * Should end in the same place it began, but the second movement
- * will be curved while the first is straight.
- */
-
-void tank_odom_test(){
-  odom_constants();
-  chassis.set_coordinates(0, 0, 0);
-  chassis.turn_to_point(24, 24);
-  chassis.drive_to_point(24,24);
-  chassis.drive_to_point(0,0);
-  chassis.turn_to_angle(0);
-}
-
-/**
- * Drives in a square while making a full turn in the process. Should
- * end where it started.
- */
-
-void holonomic_odom_test(){
-  odom_constants();
-  chassis.set_coordinates(0, 0, 0);
-  chassis.holonomic_drive_to_pose(0, 18, 90);
-  chassis.holonomic_drive_to_pose(18, 0, 180);
-  chassis.holonomic_drive_to_pose(0, 18, 270);
-  chassis.holonomic_drive_to_pose(0, 0, 0);
 }
 
 
@@ -587,4 +682,3 @@ void EBlueLeft() {
   intakeAndConveyor.stop();
   chassis.drive_stop(coast);
 }
-
