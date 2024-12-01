@@ -133,15 +133,15 @@ void pre_auton() {
   Controller1.ButtonX.pressed(lowerDoinker);
   Controller1.ButtonB.pressed(raiseDoinker);
 
+  Brain.Screen.clearScreen();
+
   while(!auto_started){
-    Brain.Screen.clearScreen();
-    Brain.Screen.printAt(5, 20, "JAR Template v1.2.0");
-    Brain.Screen.printAt(5, 40, "Battery Percentage:");
-    Brain.Screen.printAt(5, 60, "%d", Brain.Battery.capacity());
-    Brain.Screen.printAt(5, 80, "Chassis Heading Reading:");
-    Brain.Screen.printAt(5, 100, "%f", chassis.get_absolute_heading());
-    Brain.Screen.printAt(5, 120, "Color reading:");
-    Brain.Screen.printAt(5, 140, "%f", myOptical.hue());
+    Brain.Screen.printAt(5, 20, "Battery Percentage:"); //Line 1
+    Brain.Screen.printAt(5, 40, "%d", Brain.Battery.capacity()); //Line 2
+    Brain.Screen.printAt(5, 60, "Chassis Heading Reading:"); //Line 3
+    Brain.Screen.printAt(5, 80, "%f", chassis.Gyro.heading()); //Line 4
+    Brain.Screen.printAt(5, 100, "Color reading:"); //Line 5
+    Brain.Screen.printAt(5, 120, "%f", myOptical.hue());
 
     if(Brain.Screen.pressing()){
       while(Brain.Screen.pressing()) {}

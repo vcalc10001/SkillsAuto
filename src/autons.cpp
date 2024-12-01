@@ -11,7 +11,7 @@
 void default_constants(){
   // Each constant set is in the form of (maxVoltage, kP, kI, kD, startI).
   chassis.set_drive_constants(12, 0.95, 0.0, 5.0, 2);//1.5, 0, 10, 0);
-  chassis.set_drive_exit_conditions(0.1, 0, 3000);
+  chassis.set_drive_exit_conditions(0.1, 0,3000);
 
   // Each exit condition set is in the form of (settle_error, settle_time, timeout).
   chassis.set_turn_constants(10, 0.8, 0, 0, 5);
@@ -56,16 +56,20 @@ void turn_test(){
   //turn_to_heading_tiny(30);
 }
 
+double setTime = 0.0;
 
 /* Funtion registered to run when Auto is started*/
 void run_auto()
 {
+  setTime = Brain.Timer.value();
   auto_started = true;
 
   //skills_auto();
   //drive_test();
   red_wp_auto();
   auto_started = false;
+  Brain.Screen.printAt(5, 140, "Total Time Spent:");
+  Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - setTime);
 }
 
 /* ********************************* */
@@ -108,23 +112,37 @@ inline void drive_distance_large(float distance) {
       /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
-/// @brief Skills Auto
-void skills_auto() {
+void setup_auto() {
   conveyor.setVelocity(100,percent);
   conveyor.setMaxTorque(100,percent);
   intake.setVelocity(100, percent);
   intake.setMaxTorque(100, percent);
   arm.setVelocity(100, percent);
   arm.setMaxTorque(100,percent);
-  chassis.set_heading(0);
-  
+  chassis.set_heading(0.0);
+}
+
+/// @brief Shoot the ring on alliance stake
+void shoot_alliance_ring() {
+  conveyor.spinFor(directionType::fwd, 0.60,seconds);
+  conveyor.spinFor(directionType::rev, 0.25,seconds);
+  //conveyor.spin(reverse);
+  //wait(0.3,seconds);
+  conveyor.stop();
+}
+
+/// @brief Raise the am to receive ring
+void arm_get(){
+  gotoReceiveRingPosition();
+}
+
+/// @brief Skills Auto
+void skills_auto() {
+  setup_auto();
   chassis.drive_max_voltage=9;
   chassis.turn_max_voltage=9;
-  conveyor.spinFor(0.7,seconds);
-  conveyor.spin(reverse);
-  wait(0.3,seconds);
-  conveyor.stop();
-
+  
+  shoot_alliance_ring();
 
   chassis.drive_timeout=400;
   chassis.drive_distance(3.8);
@@ -165,15 +183,94 @@ void skills_auto() {
  
 }
 
-/// @brief Raise the am to receive ring
-void arm_get(){
-  gotoReceiveRingPosition();
-}
 
 /// @brief Red Win Point Auto
 void red_wp_auto() {
-  chassis.drive_distance(-16);
-  turn_to_heading_large(90);
+  setup_auto();
+
+  //Drive back and point towards alliance stake
+  chassis.drive_max_voltage = 6.0;
+  chassis.drive_distance(-11.30);
+  turn_to_heading_medium(87.5);
+  
+  //Now drive backwards to Alliance stake
+  chassis.drive_with_voltage(-2.5, -2.5);
+  task::sleep(550);
+  chassis.drive_stop(hold);
+  task::sleep(10);
+  
+  // Now Shoot the preload ring onto alliance stake
+  shoot_alliance_ring();
+
+
+  //Now drive forward and tun towards the mogo
+  chassis.drive_max_voltage = 12.0;
+  chassis.drive_distance(20);
+  turn_to_heading_large(215);
+
+  //Now drive to the mogo and clamp it (Total distance to mogo = 15-16"")
+  chassis.drive_distance(-14);
+  //*****************************************
+  // TODO - CONVERT THIS INTO ADJUST HEADING
+  //*****************************************
+  //if(chassis.Gyro.heading() < 212.5 || chassis.Gyro.heading() > 217.5) turn_to_heading_tiny(215);
+  chassis.drive_max_voltage = 3.5;  //slow down in the last part of the mogo drive
+  chassis.drive_distance(-12);
+  clampMogo();
+  task::sleep(20);  //Wait a bit to let the mogo settle
+
+  //Now turn towards Neutral zone line and get a ring
+  turn_to_heading_large(40);  //Was 38
+  //Start intake and conveyor
+  intakeAndConveyor.spin(fwd);
+  //Get first ring next to the neutral zone
+  chassis.drive_max_voltage = 12.0; //speed up again
+  chassis.drive_timeout = 1200;
+  chassis.drive_distance(23.5); //Was 21.75
+  task::sleep(800); //wait a bit to get ring and score it befoe doing the next thing 
+  
+  //Get alliance side ring 
+  chassis.drive_distance(-9); //Drive back a bit before 
+  turn_to_heading_small(345);
+  chassis.drive_distance(16);
+  task::sleep(300); //wait a bit to get ring and score it befoe doing the next thing 
+
+  //Get 2nd ring next to the neutral zone
+  turn_to_heading_medium(55);
+  chassis.drive_distance(12);
+  task::sleep(400); //wait a bit to get ring and score it befoe doing the next thing 
+
+  //Now go touch the ladder
+  chassis.drive_distance(-6);
+  arm.setStopping(hold);
+//  arm.spinToPosition(135.0, deg, false);
+  turn_to_heading_large(200);
+
+  //Stop intake and conveyor
+  intakeAndConveyor.stop(brakeType::coast);
+
+  //Drive to the Ladder
+  chassis.drive_stop(coast);
+  chassis.drive_with_voltage(6, 6);
+  // while(armRotation.position(degrees) < 100.0) {
+  //   arm.spin(reverse);
+  //   task::sleep(5);
+  // }
+  // arm.stop(hold);
+
+  while((Brain.Timer.value() - setTime) < 14.970) {
+    task::sleep(5);
+    //Do Nothing
+  }
+  chassis.drive_stop(coast);
+
+/*  This was the code to get the alliance ring first
+  // Now tun around to get ring and score it on mogo
+  turn_to_heading_large(0);
+  chassis.drive_max_voltage = 12.0; //speed up again
+  chassis.drive_distance(21);
+  task::sleep(200); //wait a bit to get ring and score it befoe turning towards the neutral zone line 
+*/
 }
 
 /**

@@ -329,7 +329,7 @@ void Drive::drive_distance(float distance, float heading, float drive_max_voltag
     task::sleep(5); //was 10
   }
   drive_stop(hold);
-  task::sleep(5);
+  task::sleep(10);
 }
 
 /**
