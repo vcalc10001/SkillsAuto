@@ -237,8 +237,8 @@ void red_wp_auto() {
 
   //Get 2nd ring next to the neutral zone
   turn_to_heading_medium(55);
-  chassis.drive_distance(12);
-  task::sleep(400); //wait a bit to get ring and score it befoe doing the next thing 
+  chassis.drive_distance(13);
+  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing 
 
   //Now turn towads ladder
   chassis.drive_distance(-6);
