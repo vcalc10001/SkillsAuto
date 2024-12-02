@@ -19,14 +19,11 @@ void odom_test();
 void tank_odom_test();
 void holonomic_odom_test();
 
-void QRedRight();
-void ERedRight();
-void QBlueLeft();
-void EBlueLeft();
-
 void skills_auto();
 
 void red_wp_auto();
+void red_right_qual_nopid_auto();
+void blue_left_qual_nopid_auto();
 
 /* ************************************ */
 /* Bunch of pre-tuned Driving functions */

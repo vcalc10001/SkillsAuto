@@ -23,28 +23,38 @@ void raiseDoinker(void) {
 
 //Conveyor Functions
 
+/// @brief Check if the ring we are seeing is unwanted color and reject it
+/// @brief Called in a loop in conveyor button function and auton color sorting task
+void filterBadRing() {
+  const int rejectRingWait1 = 13;
+  const int rejectRingWait2 = 15;
+
+  //When color sensor sees the the rings we want to reject, stop conveyor momentarily so that the ring flies off
+  if(rejectRed) { //Reject Red Rings
+    if (myOptical.hue() < 25) { //Red Hue is generally around 20 or lower
+      task::sleep(rejectRingWait1); //Wait a bit before stopping conveyor
+      intakeAndConveyor.stop();
+      waitUntil((myOptical.hue() > 25));      
+      task::sleep(rejectRingWait2); //Wait a bit before restrating conveyor
+      intakeAndConveyor.spin(forward);
+    }
+  }
+  else {  //Reject Blue Rings
+    if (myOptical.hue() > 150) {  //Blue Hue is generally 210 or higher
+      task::sleep(rejectRingWait1); //Wait a bit before stopping conveyor
+      intakeAndConveyor.stop();
+      waitUntil((myOptical.hue() < 150));      
+      task::sleep(rejectRingWait2); //Wait a bit before restrating conveyor
+      intakeAndConveyor.spin(forward);
+    }
+  }
+}
+
 //Spins Intake and conveyor forward (take in rings and score); while looking for ring to reject
 void spinConveyorForward(void) {
   while (Controller1.ButtonL1.pressing()) {
     intakeAndConveyor.spin(forward);
-    
-    //When color sensor sees the the rings we want to reject, stop conveyor momentarily so that the ring flies off
-    if(rejectRed) { //Reject Red Rings
-      if (myOptical.hue() < 25) { //Red Hue is generally around 20 or lower
-        task::sleep(8); //Wait a bit before stopping conveyor
-        intakeAndConveyor.stop();
-        waitUntil((myOptical.hue() > 25));      
-        intakeAndConveyor.spin(forward);
-      }
-    }
-    else {  //Reject Blue Rings
-      if (myOptical.hue() > 150) {  //Blue Hue is generally 210 or higher
-        task::sleep(8); //Wait a bit before stopping conveyor
-        intakeAndConveyor.stop();
-        waitUntil((myOptical.hue() < 150));      
-        intakeAndConveyor.spin(forward);
-      }
-    }
+    filterBadRing();
     task::sleep(5);
   }
   intakeAndConveyor.stop();

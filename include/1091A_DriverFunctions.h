@@ -26,4 +26,5 @@ void rotateArmForward(void);
 void rotateArmBack(void);
 void lockRing(void);
 
-
+//Color sorting Function
+void filterBadRing(void);

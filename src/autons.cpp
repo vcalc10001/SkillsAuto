@@ -2,29 +2,6 @@
 
 double autonStartTime = 0.0;
 
-/// @brief Spin arm up for touching the ladder.  Used to create a task object so that we can do this in parallel with other things
-/// @return always returns zero since Vex::task class expects that
-int spinArmUpForLadder() {
-  while(armRotation.position(degrees) < 120.0) {
-     arm.spin(reverse);
-     task::sleep(5);
-  }
-  arm.stop(hold);
-  return 0;
-}
-
-/// @brief Spin arm back down.  Used to create a task object so that we can do this in parallel with other things
-/// @return always returns zero since Vex::task class expects that
-int spinArmBackDown() {
-  arm.setVelocity(100, percent);
-  arm.setStopping(coast);
-  arm.spin(forward);  
- 
-  while(armRotation.position(degrees) > 10.0) {task::sleep(5);}  //wait for arm to get back down
-  arm.stop(coast); //stop the arm once we reach about 10 degrees.  The arm will go down by itself rest of the way
-  return 0;
-}
-
 /**
  * Resets the constants for auton movement.
  * Modify these to change the default behavior of functions like
@@ -239,6 +216,38 @@ inline void drive_distance_large(float distance) {
       /* Heading kp, ki, kd, heading starti */ 0, 0, 0, 0);
 }
 
+/// @brief Spin arm up for touching the ladder.  Used to create a task object so that we can do this in parallel with other things
+/// @return always returns zero since Vex::task class expects that
+int spinArmUpForLadder() {
+  while(armRotation.position(degrees) < 145.0) {
+     arm.spin(reverse);
+     task::sleep(5);
+  }
+  arm.stop(hold);
+  return 0;
+}
+
+/// @brief Spin arm back down.  Used to create a task object so that we can do this in parallel with other things
+/// @return always returns zero since Vex::task class expects that
+int spinArmBackDown() {
+  arm.setVelocity(100, percent);
+  arm.setStopping(coast);
+  arm.spin(forward);  
+ 
+  while(armRotation.position(degrees) > 10.0) {task::sleep(5);}  //wait for arm to get back down
+  arm.stop(coast); //stop the arm once we reach about 10 degrees.  The arm will go down by itself rest of the way
+  return 0;
+}
+
+/// @brief Color Soting loop for autos.  Used to create a task object so that we can do this in parallel with other things
+/// @return always returns zero since Vex::task class expects that.  But in eality it ill neve return
+int ringSortingAutonTask() {
+  while(true) {
+    filterBadRing();
+    task::sleep(5);
+  }
+  return 0;
+}
 
 /* Funtion registered to run when Auto is started*/
 void run_auto()
@@ -246,12 +255,19 @@ void run_auto()
   autonStartTime = Brain.Timer.value();
   auto_started = true;
 
+  //Start raising the arm on a separate thread
+  vex::task colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
+
   //skills_auto();
   //drive_test();
-  red_wp_auto();
-  auto_started = false;
+  //red_wp_auto();
+  red_right_qual_nopid_auto();
+  //blue_left_qual_nopid_auto();
+
+  colorSortingTask.stop();
   Brain.Screen.printAt(5, 140, "Total Time Spent:");
   Brain.Screen.printAt(5, 160, "%f", Brain.Timer.value() - autonStartTime);
+  auto_started = false;
 }
 
 
@@ -283,6 +299,9 @@ void arm_get(){
 
 /// @brief Skills Auto
 void skills_auto() {
+  //Set Ring Filtering to filter Blue rings
+  rejectRed = false;
+
   setup_auto();
   chassis.drive_max_voltage=9;
   chassis.turn_max_voltage=9;
@@ -415,6 +434,9 @@ chassis.drive_max_voltage=9;
 
 /// @brief Red Win Point Auto (Red - left side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
 void red_wp_auto() {
+  //Set Ring Filtering to filter Blue rings
+  rejectRed = false;
+
   setup_auto();
 
   //Drive back and point towards alliance stake
@@ -448,27 +470,27 @@ void red_wp_auto() {
 
 
   //Now turn towards Neutral zone line and get a ring (the one closer to the ladder)
-  turn_to_heading_large(42.5);  //Was 38; was 0
+  turn_to_heading_large(42.5);  //Was 38; then 40
   //Start intake and conveyor
   intakeAndConveyor.spin(fwd);
   //Get first ring next to the neutral zone
   chassis.drive_max_voltage = 12.0; //speed up again
   chassis.drive_timeout = 1200;
   chassis.drive_distance(22.25); //Was 23.5
-  task::sleep(650); //wait a bit to get ring and score it befoe doing the next thing (was 800) 
+  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing (was 800; then 650) 
   
   //Get alliance side ring 
   chassis.drive_distance(-6); //Drive back a bit (was -9)
 
 
-  turn_to_heading_small(347.5); //turn towards alliance side ring (was 345)
-  chassis.drive_distance(16); //Drive to alliance side ring
-  task::sleep(250); //wait a bit to get ring and score it befoe doing the next thing (was 300) 
+  turn_to_heading_small(345.0); //turn towards alliance side ring (was 345)
+  chassis.drive_distance(17.0); //Drive to alliance side ring
+  task::sleep(300); //wait a bit to get ring and score it befoe doing the next thing (was 250, then 250) 
 
   //Get 2nd ring next to the neutral zone
   turn_to_heading_medium(55); //Turn toards ring
-  chassis.drive_distance(12.25); //Drive to ring (was 13)
-  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing 
+  chassis.drive_distance(12.25); //Drive to ring (was 13; then 12.25)
+  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing (was was  500; then 500)
 
   //Now turn towads ladder
   chassis.drive_with_voltage(-12, -12); //First drive back a bit so we do not cross the line when turning towards ladder
@@ -476,7 +498,7 @@ void red_wp_auto() {
   chassis.drive_stop(brake);
   turn_to_heading_large(180); //Now turn towards ladder
 
-  //Start raisning the arm on a separate thread
+  //Start raising the arm on a separate thread
   vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
 
   //Drive to the Ladder while raising the arm
@@ -484,7 +506,7 @@ void red_wp_auto() {
   chassis.drive_with_voltage(4.75, 2.55); //Do a curve drive so we get more parallel to the ladder as we drive
 
   //Keep diving to the ladder till we run out of time, then stop in coast mode
-  while((Brain.Timer.value() - autonStartTime) < 14.995) {
+  while((Brain.Timer.value() - autonStartTime) < 15.0) {
     task::sleep(5);
     //Do Nothing
   }
@@ -496,7 +518,7 @@ void red_wp_auto() {
 /* ***************************************** */
 /* ***************************************** */
 /* ***************************************** */
-/* Autos from 11/16/2024 Ignite Event        */
+/* Autos adapted from Ignite Event           */
 /* ***************************************** */
 /* ***************************************** */
 /* ***************************************** */
@@ -508,102 +530,62 @@ void red_wp_auto() {
 //4. Get A disc
 //5. Score that
 //6. Touch Ladder
-void QRedRight() {
-  auto_started = true;
-
+void red_right_qual_nopid_auto() {
   //Set Ring Filtering to filter Blue rings
   rejectRed = false;
+
   //Drive to Mogo
   chassis.drive_with_voltage(-6,-6);
-  wait(600, msec);
+  task::sleep(750);
   chassis.drive_with_voltage(-3.5,-3.5);
-  wait(900, msec);
+  task::sleep(950);
   chassis.drive_stop(vex::brake);
 
   //Clamp Mogo and score preload
   clampMogo();
-  wait(250, msec);  //wait fo mogo to settle, then scoer disc
+  task::sleep(100);  //wait for mogo to settle, then scoer disc
+ 
+  //spin intake and conveyor to score the preload
   intakeAndConveyor.spin(forward);
-  wait(250, msec);
 
-  //Now turn Left about 100 degreees
+  //Now turn right about 90 degreees
   chassis.drive_with_voltage(6, -6);
-  wait(450, msec);
+  task::sleep(450);
   chassis.drive_stop(vex::hold);
+  task::sleep(25);  //settle down before driving
 
   //Intake is already spinning, drive to get the 2nd disc
   chassis.drive_with_voltage(6,6);
-  wait(950, msec);
+  task::sleep(700);
+  chassis.drive_stop(brake);
+  task::sleep(500);
 
   //Now Right Turn towards Ladder (turn #1)
   chassis.drive_with_voltage(-8, 8);
-  wait(550, msec);
+  task::sleep(550);
+
   //Drive forwad a bit
   chassis.drive_with_voltage(7.5, 7.5);
-  wait(750, msec);
-
-  //Now turn a bit more to the right to line up with ladder
-  chassis.drive_with_voltage(-4, 4);
-  wait(175, msec);
+  task::sleep(750);
 
   //Stop intakeAndConveyor then raise arm
   intakeAndConveyor.stop();
-  arm.setVelocity(60, percent);
-  while(armRotation.position(degrees) < 120) { arm.spin(reverse); wait(5, msec);}
-  arm.stop(hold); 
+
+  //Start raising the arm on a separate thread
+  vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
+ 
+ //Now turn a bit more to the right to line up perpeidular to the ladder
+  chassis.drive_with_voltage(-5, 5);
+  task::sleep(550);
   
   //Drive to ladder
-  chassis.drive_with_voltage(3, 3);
+  chassis.drive_with_voltage(2.5, 2.5);
   wait(3000, msec);
 
   chassis.drive_stop(coast);
 }
 
-//Red Right Side Auton for Elims -
-//1. Grab Mogo
-//2. Score Preload
-//3. Turn Left 90
-//4. Get A disc
-//5. Score that
-//6. Orient towards Ladder
-void ERedRight() {
-  auto_started = true;
 
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = false;
-  //Drive to Mogo
-  chassis.drive_with_voltage(-6,-6);
-  wait(600, msec);
-  chassis.drive_with_voltage(-3.5,-3.5);
-  wait(900, msec);
-  chassis.drive_stop(vex::brake);
-
-  //Clamp Mogo and score preload
-  clampMogo();
-  wait(250, msec);  //wait fo mogo to settle, then scoer disc
-  intakeAndConveyor.spin(forward);
-  wait(250, msec);
-
-  //Now turn Left about 100 degreees
-  chassis.drive_with_voltage(6, -6);
-  wait(450, msec);
-  chassis.drive_stop(vex::hold);
-
-  //Intake is already spinning, drive to get the 2nd disc
-  chassis.drive_with_voltage(6,6);
-  wait(950, msec);
-
-  //Now Right Turn towards Ladder (turn #1)
-  chassis.drive_with_voltage(-8, 8);
-  wait(550, msec);
-  //Drive forwad a bit
-  chassis.drive_with_voltage(7.5, 7.5);
-  wait(750, msec);
-
-  //Stop intakeAndConveyor then raise arm
-  intakeAndConveyor.stop();
-  chassis.drive_stop(brake);
-}
 
 //Blue Left Side Auton for Quals
 //1. Grab Mogo
@@ -612,99 +594,57 @@ void ERedRight() {
 //4. Get A disc
 //5. Score that
 //6. Touch Ladder
-void QBlueLeft() {
-  auto_started = true;
-
+void blue_left_qual_nopid_auto() {
   //Set Ring Filtering to filter Blue rings
   rejectRed = true;
+
   //Drive to Mogo
   chassis.drive_with_voltage(-6,-6);
-  wait(600, msec);
+  task::sleep(750);
   chassis.drive_with_voltage(-3.5,-3.5);
-  wait(900, msec);
+  task::sleep(950);
   chassis.drive_stop(vex::brake);
 
   //Clamp Mogo and score preload
   clampMogo();
-  wait(250, msec);  //wait fo mogo to settle, then scoer disc
+  task::sleep(100);  //wait for mogo to settle, then scoer disc
+ 
+  //spin intake and conveyor to score the preload
   intakeAndConveyor.spin(forward);
-  wait(250, msec);
 
-  //Now turn Right about 100 degreees
+  //Now turn left about 90 degreees
   chassis.drive_with_voltage(-6, 6);
-  wait(450, msec);
+  task::sleep(450);
   chassis.drive_stop(vex::hold);
+  task::sleep(25);  //settle down before driving
 
   //Intake is already spinning, drive to get the 2nd disc
   chassis.drive_with_voltage(6,6);
-  wait(950, msec);
+  task::sleep(700);
+  chassis.drive_stop(brake);
+  task::sleep(500);
 
   //Now Left Turn towards Ladder (turn #1)
   chassis.drive_with_voltage(8, -8);
-  wait(550, msec);
-  //Drive forwad a bit
-  chassis.drive_with_voltage(7.5, 7.5);
-  wait(750, msec);
+  task::sleep(550);
 
-  //Now turn a bit more to the left to line up with ladder
-  chassis.drive_with_voltage(4, -4);
-  wait(175, msec);
+  //Drive forwad a bit
+  chassis.drive_with_voltage(6.5, 6.5);
+  task::sleep(750);
 
   //Stop intakeAndConveyor then raise arm
   intakeAndConveyor.stop();
-  arm.setVelocity(60, percent);
-  while(armRotation.position(degrees) < 120) { arm.spin(reverse); wait(5, msec);}
-  arm.stop(hold); 
-  
+
+  //Start raising the arm on a separate thread
+  vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
+
+  //Now turn a bit more to the left to line up perpendicular with ladder
+  chassis.drive_with_voltage(5, -5);
+  task::sleep(250);
+
   //Drive to ladder
-  chassis.drive_with_voltage(3, 3);
+  chassis.drive_with_voltage(2.5, 2.5);
   wait(3000, msec);
 
-  chassis.drive_stop(coast);
-}
-
-//Blue Left Side Auton for Elims
-//1. Grab Mogo
-//2. Score Preload
-//3. Turn Right 90
-//4. Get A disc
-//5. Score that
-//6. orient towards ladder
-void EBlueLeft() {
-  auto_started = true;
-
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = true;
-  //Drive to Mogo
-  chassis.drive_with_voltage(-6,-6);
-  wait(600, msec);
-  chassis.drive_with_voltage(-3.5,-3.5);
-  wait(900, msec);
-  chassis.drive_stop(vex::brake);
-
-  //Clamp Mogo and score preload
-  clampMogo();
-  wait(250, msec);  //wait fo mogo to settle, then scoer disc
-  intakeAndConveyor.spin(forward);
-  wait(250, msec);
-
-  //Now turn Right about 100 degreees
-  chassis.drive_with_voltage(-6, 6);
-  wait(450, msec);
-  chassis.drive_stop(vex::hold);
-
-  //Intake is already spinning, drive to get the 2nd disc
-  chassis.drive_with_voltage(6,6);
-  wait(950, msec);
-
-  //Now Left Turn towards Ladder (turn #1)
-  chassis.drive_with_voltage(8, -8);
-  wait(550, msec);
-  //Drive forwad a bit
-  chassis.drive_with_voltage(7.5, 7.5);
-  wait(750, msec);
-
-  //Stop intakeAndConveyor
-  intakeAndConveyor.stop();
   chassis.drive_stop(coast);
 }
