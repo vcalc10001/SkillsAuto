@@ -26,25 +26,22 @@ void raiseDoinker(void) {
 /// @brief Check if the ring we are seeing is unwanted color and reject it
 /// @brief Called in a loop in conveyor button function and auton color sorting task
 void checkAndFilterBadRing() {
-  const int rejectRingWait1 = 13;
-  const int rejectRingWait2 = 15;
-
   //When color sensor sees the the rings we want to reject, stop conveyor momentarily so that the ring flies off
   if(rejectRed) { //Reject Red Rings
     if (myOptical.hue() < 25) { //Red Hue is generally around 20 or lower
-      task::sleep(rejectRingWait1); //Wait a bit before stopping conveyor
+      task::sleep(13); //Wait a bit before stopping conveyor
       intakeAndConveyor.stop();
       waitUntil((myOptical.hue() > 25));      
-      task::sleep(rejectRingWait2); //Wait a bit before restrating conveyor
+      task::sleep(15); //Wait a bit before restrating conveyor
       intakeAndConveyor.spin(forward);
     }
   }
   else {  //Reject Blue Rings
     if (myOptical.hue() > 150) {  //Blue Hue is generally 210 or higher
-      task::sleep(rejectRingWait1); //Wait a bit before stopping conveyor
+      task::sleep(13); //Wait a bit before stopping conveyor
       intakeAndConveyor.stop();
       waitUntil((myOptical.hue() < 150));      
-      task::sleep(rejectRingWait2); //Wait a bit before restrating conveyor
+      task::sleep(15); //Wait a bit before restrating conveyor
       intakeAndConveyor.spin(forward);
     }
   }
