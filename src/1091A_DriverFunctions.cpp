@@ -25,7 +25,7 @@ void raiseDoinker(void) {
 
 /// @brief Check if the ring we are seeing is unwanted color and reject it
 /// @brief Called in a loop in conveyor button function and auton color sorting task
-void filterBadRing() {
+void checkAndFilterBadRing() {
   const int rejectRingWait1 = 13;
   const int rejectRingWait2 = 15;
 
@@ -54,7 +54,7 @@ void filterBadRing() {
 void spinConveyorForward(void) {
   while (Controller1.ButtonL1.pressing()) {
     intakeAndConveyor.spin(forward);
-    filterBadRing();
+    checkAndFilterBadRing();
     task::sleep(5);
   }
   intakeAndConveyor.stop();

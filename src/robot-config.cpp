@@ -37,6 +37,8 @@ optical myOptical = optical(PORT12);
 
 inertial myInertial = inertial(PORT6);
 
+distance backDistanceSensor = distance(PORT19);
+
 void vexcodeInit( void ) {
   // nothing to initialize
 

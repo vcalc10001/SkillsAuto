@@ -32,6 +32,8 @@ extern optical myOptical;
 
 extern inertial myInertial;
 
+extern distance backDistanceSensor;
+
 
 
 void  vexcodeInit( void );

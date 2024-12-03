@@ -140,8 +140,11 @@ void pre_auton() {
     Brain.Screen.printAt(5, 40, "%d", Brain.Battery.capacity()); //Line 2
     Brain.Screen.printAt(5, 60, "Chassis Heading Reading:"); //Line 3
     Brain.Screen.printAt(5, 80, "%f", chassis.Gyro.heading()); //Line 4
-    Brain.Screen.printAt(5, 100, "Color reading:"); //Line 5
-    Brain.Screen.printAt(5, 120, "%f", myOptical.hue());
+    // Brain.Screen.printAt(5, 100, "Color reading:"); //Line 5
+    // Brain.Screen.printAt(5, 120, "%f", myOptical.hue());
+    Brain.Screen.printAt(5, 100, "Distance reading:"); //Line 5
+    Brain.Screen.printAt(5, 120, "%f", backDistanceSensor.objectDistance(distanceUnits::mm));
+
 
     if(Brain.Screen.pressing()){
       while(Brain.Screen.pressing()) {}
