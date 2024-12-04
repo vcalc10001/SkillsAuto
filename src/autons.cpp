@@ -447,7 +447,7 @@ void red_wp_auto() {
  
   //Now drive backwards to Alliance stake
   chassis.drive_with_voltage(-2.5, -2.5);
-  task::sleep(600);
+  //task::sleep(600);
   while(backDistanceSensor.objectDistance(distanceUnits::mm)>65) task::sleep(5);
   chassis.drive_stop(brake);
   //task::sleep(10);
@@ -455,7 +455,7 @@ void red_wp_auto() {
   // Now Shoot the preload ring onto alliance stake
   shoot_alliance_ring();
 
-/* 
+
   //Now drive forward and tun towards the mogo
   chassis.drive_max_voltage = 12.0; //first drive straight towads the ladder
   chassis.drive_distance(20);
@@ -514,7 +514,6 @@ void red_wp_auto() {
   //Stop intake and conveyor
   intakeAndConveyor.stop(brakeType::coast);
   chassis.drive_stop(coast);  
-*/
 }
 
 /* ***************************************** */
@@ -545,7 +544,7 @@ void red_right_qual_nopid_auto() {
 
   //Clamp Mogo and score preload
   clampMogo();
-  task::sleep(250);  //wait for mogo to settle, then scoer disc
+  task::sleep(250);  //wait for mogo to settle, then score disc
  
   //spin intake and conveyor to score the preload
   intakeAndConveyor.spin(forward);
@@ -582,7 +581,7 @@ void red_right_qual_nopid_auto() {
   
   //Drive to ladder
   chassis.drive_with_voltage(2.5, 2.5);
-  wait(3000, msec);
+  task::sleep(3000);
 
   chassis.drive_stop(coast);
 }
@@ -609,7 +608,7 @@ void blue_left_qual_nopid_auto() {
 
   //Clamp Mogo and score preload
   clampMogo();
-  task::sleep(250);  //wait for mogo to settle, then scoer disc
+  task::sleep(250);  //wait for mogo to settle, then score disc
  
   //spin intake and conveyor to score the preload
   intakeAndConveyor.spin(forward);
@@ -646,7 +645,7 @@ void blue_left_qual_nopid_auto() {
 
   //Drive to ladder
   chassis.drive_with_voltage(2.5, 2.5);
-  wait(3000, msec);
+  task::sleep(3000);
 
   chassis.drive_stop(coast);
 }
