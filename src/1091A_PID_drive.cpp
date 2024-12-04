@@ -47,7 +47,6 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
     while ((Brain.Timer.value() - setTime)*1000.0 < turn_timeout \
             && ((degreesTurned < (degreesToTurn - turn_settle_error)) \
              || (degreesTurned > (degreesToTurn + turn_settle_error)))) {
-    //while ((degreesTurned < degreesToTurn && (Brain.Timer.value() - setTime) < turn_timeout)) {
       loopCount++;
       if (isTurnLeft) drive_with_voltage(-currentVolts, currentVolts);  //For left turn, left side is -ve volts, Right side is +ve volts
       else drive_with_voltage(currentVolts, -currentVolts); //For right turn, Left side is +ve volts, Right side is -ve volts
@@ -56,7 +55,7 @@ void Drive::turn_to_heading_1091A(float targetHeading, float turn_max_voltage, f
       if((gyroReadingDelayInMSec / loopCount) < 2.0) task::sleep(2);
       else task::sleep(static_cast<uint32_t>(gyroReadingDelayInMSec / loopCount));
 
-      //Read hoi much we have turned and normalize the amount turned
+      //Read how much we have turned and normalize the amount turned
       degreesTurned = fabs(static_cast<float>(Gyro.rotation())*(360.0/gyro_scale));
       if (degreesTurned > 180.0) degreesTurned = fabs(static_cast<float>(degreesTurned - 360.0));
 

@@ -135,7 +135,61 @@ void pre_auton() {
 
   Brain.Screen.clearScreen();
 
-  while(!auto_started){
+  while(!auto_started) {
+    if(Brain.Screen.pressing()){
+      while(Brain.Screen.pressing()) {}
+      current_auton_selection ++;
+    }
+    else if (current_auton_selection == 9){
+      current_auton_selection = 0;
+    }
+    Brain.Screen.setFont(fontType::mono40);
+    Brain.Screen.setFillColor(color::black);
+
+    switch(current_auton_selection) {
+      case 0:
+        Brain.Screen.setFillColor(color::green);
+        Brain.Screen.printAt(5, 200, "SKILLS");
+        break;
+      case 1:
+        Brain.Screen.setFillColor(color::red);
+        Brain.Screen.printAt(5, 200, "RED WIN POINT");
+        break;
+      case 2:
+        Brain.Screen.setFillColor(color::red);
+        Brain.Screen.printAt(5, 200,"RED RIGHT QUAL");
+        break;
+      case 3:
+        Brain.Screen.setFillColor(color::blue);
+        Brain.Screen.printAt(5, 200,"BLUE WIN POINT");
+        break;
+      case 4:
+        Brain.Screen.setFillColor(color::blue);
+        Brain.Screen.printAt(5, 200,"BLUE LEFT QUAL");
+        break;
+      case 5:
+        Brain.Screen.setFillColor(color::red);
+        Brain.Screen.printAt(5, 200,"ELIMS RED RUSH");
+        break;
+      case 6:
+        Brain.Screen.setFillColor(color::blue);
+        Brain.Screen.printAt(5, 200,"ELIMS BLUE RUSH");
+        break;
+      case 7:
+        Brain.Screen.setFillColor(color::purple);
+        Brain.Screen.printAt(5, 200,"DRIVE TEST");
+        break;
+      case 8:
+        Brain.Screen.setFillColor(color::purple);
+        Brain.Screen.printAt(5, 200,"TURN TEST");
+        break;
+      default:
+        Brain.Screen.setFillColor(color::black);
+        Brain.Screen.printAt(5, 200,"*** NO AUTO ***");
+        break;
+    }
+
+    Brain.Screen.setFont(fontType::mono20);
     Brain.Screen.printAt(5, 20, "Battery Percentage:"); //Line 1
     Brain.Screen.printAt(5, 40, "%d", Brain.Battery.capacity()); //Line 2
     Brain.Screen.printAt(5, 60, "Chassis Heading Reading:"); //Line 3
@@ -145,13 +199,6 @@ void pre_auton() {
     Brain.Screen.printAt(5, 100, "Distance reading:"); //Line 5
     Brain.Screen.printAt(5, 120, "%f", backDistanceSensor.objectDistance(distanceUnits::mm));
 
-
-    if(Brain.Screen.pressing()){
-      while(Brain.Screen.pressing()) {}
-      current_auton_selection ++;
-    } else if (current_auton_selection == 8){
-      current_auton_selection = 0;
-    }
     task::sleep(10);
   }
 }
@@ -195,7 +242,7 @@ void usercontrol(void) {
 //
 int main() {
   // Set up callbacks for autonomous and driver control periods.
-  Competition.autonomous(run_auto);
+  Competition.autonomous(run_selected_auton);
   Competition.drivercontrol(usercontrol);
 
   // Run the pre-autonomous function.

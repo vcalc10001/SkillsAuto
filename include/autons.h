@@ -4,10 +4,10 @@
 class Drive;
 
 extern Drive chassis;
-static int current_auton_selection = 1;
+static int current_auton_selection = 0;
 static bool auto_started = false;
 
-void run_auto();
+void run_selected_auton();
 
 void default_constants();
 
@@ -41,10 +41,12 @@ void drive_distance_large(float distance);
 void turn_to_heading_tiny(float targetHeading);
 //Use for small turns (30-60 degrees) - Tuned to 45
 void turn_to_heading_small(float targetHeading);
-//Use for medium turns (60-120 degrees) - tuned to 90
+//Use for medium turns (60-120 degrees)
 void turn_to_heading_medium(float targetHeading);
-//Use for large turns (> 120 degrees) - This is not yet tuned
+//Use for large turns (120-150 degrees)
 void turn_to_heading_large(float targetHeading);
+//Use for x-large turns (> 150 degrees)
+void turn_to_heading_xlarge(float targetHeading);
 
 // Adjust heading after turning (call for situations when accuracy matters a lot)
 void adjustHeading(double targetHeading, double tolerance, double timeout);
