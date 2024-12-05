@@ -2,6 +2,7 @@
 
 using namespace vex;
 competition Competition;
+bool in_user_control = false;
 
 /*---------------------------------------------------------------------------*/
 /*                             VEXcode Config                                */
@@ -106,43 +107,7 @@ PORT10,
 
 );
 
-
-/**
- * Function before autonomous. It prints the current auton number on the screen
- * and tapping the screen cycles the selected auton by 1. Add anything else you
- * may need, like resetting pneumatic components. You can rename these autons to
- * be more descriptive, if you like.
- */
-
-void pre_auton() {
-  // Initializing Robot Configuration. DO NOT REMOVE!
-  vexcodeInit();
-  default_constants();
-
-  Controller1.ButtonR1.pressed(clampMogo);
-  Controller1.ButtonR2.pressed(releaseMogo);
-
-  Controller1.ButtonL1.pressed(spinConveyorForward);
-  Controller1.ButtonL2.pressed(spinConveyorReverse);
-
-  Controller1.ButtonLeft.pressed(gotoReceiveRingPosition);
-  Controller1.ButtonUp.pressed(rotateArmForward);
-  Controller1.ButtonDown.pressed(rotateArmBack);
-  Controller1.ButtonRight.pressed(lockRing);
-
-  Controller1.ButtonX.pressed(lowerDoinker);
-  Controller1.ButtonB.pressed(raiseDoinker);
-
-  Brain.Screen.clearScreen();
-
-  while(!auto_started) {
-    if(Brain.Screen.pressing()){
-      while(Brain.Screen.pressing()) {}
-      current_auton_selection ++;
-    }
-    else if (current_auton_selection == 9){
-      current_auton_selection = 0;
-    }
+void printAutonMode() {
     Brain.Screen.setFont(fontType::mono40);
     Brain.Screen.setFillColor(color::black);
 
@@ -188,7 +153,51 @@ void pre_auton() {
         Brain.Screen.printAt(5, 200,"*** NO AUTO ***");
         break;
     }
+}
 
+void onAutonSelectorPressed()
+{
+  if(!auto_started) {
+    if(autonSelectorBumper.pressing() > 0) {
+      current_auton_selection ++;
+      Brain.Screen.clearScreen();
+      task::sleep(500);
+    }
+    if (current_auton_selection == 9) current_auton_selection = 0;
+    printAutonMode();
+  }
+}
+
+/**
+ * Function before autonomous. It prints the current auton number on the screen
+ * and tapping the screen cycles the selected auton by 1. Add anything else you
+ * may need, like resetting pneumatic components. You can rename these autons to
+ * be more descriptive, if you like.
+ */
+
+void pre_auton() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+  default_constants();
+
+  Controller1.ButtonR1.pressed(clampMogo);
+  Controller1.ButtonR2.pressed(releaseMogo);
+
+  Controller1.ButtonL1.pressed(spinConveyorForward);
+  Controller1.ButtonL2.pressed(spinConveyorReverse);
+
+  Controller1.ButtonLeft.pressed(gotoReceiveRingPosition);
+  Controller1.ButtonUp.pressed(rotateArmForward);
+  Controller1.ButtonDown.pressed(rotateArmBack);
+  Controller1.ButtonRight.pressed(lockRing);
+
+  Controller1.ButtonX.pressed(lowerDoinker);
+  Controller1.ButtonB.pressed(raiseDoinker);
+
+  autonSelectorBumper.pressed(onAutonSelectorPressed);
+  Brain.Screen.clearScreen();
+
+  while(!auto_started) {
     Brain.Screen.setFont(fontType::mono20);
     Brain.Screen.printAt(5, 20, "Battery Percentage:"); //Line 1
     Brain.Screen.printAt(5, 40, "%d", Brain.Battery.capacity()); //Line 2
@@ -199,6 +208,8 @@ void pre_auton() {
     Brain.Screen.printAt(5, 100, "Distance reading:"); //Line 5
     Brain.Screen.printAt(5, 120, "%f", backDistanceSensor.objectDistance(distanceUnits::mm));
 
+    printAutonMode();
+    
     task::sleep(10);
   }
 }
@@ -215,6 +226,7 @@ void pre_auton() {
 
 void usercontrol(void) {
   auto_started = false;
+  in_user_control = true;
   Brain.Screen.clearScreen();
 
   // User control code here, inside the loop
@@ -235,6 +247,7 @@ void usercontrol(void) {
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }
+  in_user_control = false;
 }
 
 //

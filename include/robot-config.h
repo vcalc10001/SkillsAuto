@@ -34,6 +34,9 @@ extern inertial myInertial;
 
 extern distance backDistanceSensor;
 
+extern bumper autonSelectorBumper;
 
 
 void  vexcodeInit( void );
+
+void printAutonMode(void);

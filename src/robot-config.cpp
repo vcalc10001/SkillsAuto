@@ -39,6 +39,8 @@ inertial myInertial = inertial(PORT6);
 
 distance backDistanceSensor = distance(PORT19);
 
+bumper autonSelectorBumper = bumper(Brain.ThreeWirePort.F);
+
 void vexcodeInit( void ) {
   // nothing to initialize
 

@@ -4,7 +4,7 @@
 class Drive;
 
 extern Drive chassis;
-static int current_auton_selection = 0;
+static int current_auton_selection = 1;
 static bool auto_started = false;
 
 void run_selected_auton();

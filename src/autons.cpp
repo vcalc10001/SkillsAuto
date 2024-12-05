@@ -1,5 +1,7 @@
 #include "vex.h"
 
+using namespace vex;
+
 /* Test Change */
 
 /**
@@ -175,11 +177,11 @@ void adjustHeading(double targetHeading, double tolerance, double timeout) {
   bool isTurnLeft = false;
 
   //Figure out how many degrees to turn
-  float degreesToTurn = fabs(static_cast<float>(startingHeading - targetHeading));
+  float degreesToTurn = fabs((startingHeading - targetHeading));
   bool isDiffLT180 = (degreesToTurn < 180.0);
 
   //If degrees to turn is >180, then normalize it to the opposite angle
-  if (!isDiffLT180) degreesToTurn = fabs(static_cast<float>(360.0 - degreesToTurn));
+  if (!isDiffLT180) degreesToTurn = fabs((360.0 - degreesToTurn));
 
   //Figure out whether to turn left or right
  /* if ((isDiffLT180 && isTargetLTCurrent) || (!isDiffLT180 && !isTargetLTCurrent)) isTurnLeft = false;  // Turn Right
@@ -278,56 +280,38 @@ void run_selected_auton()
   //Start raising the arm on a separate thread
   vex::task colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
 
+  printAutonMode();
+
   switch(current_auton_selection) {
     case 0:
-      Brain.Screen.setFillColor(color::green);
-      Brain.Screen.printAt(5, 200, "SKILLS");
       skills_auto();
       break;
     case 1:
-      Brain.Screen.setFillColor(color::red);
-      Brain.Screen.printAt(5, 200, "RED WIN POINT");
       red_wp_auto();
       break;
     case 2:
-      Brain.Screen.setFillColor(color::red);
-      Brain.Screen.printAt(5, 200,"RED RIGHT QUAL");
       red_right_qual_nopid_auto();
       break;
     case 3:
       //Blue Win Point
-      Brain.Screen.setFillColor(color::blue);
-      Brain.Screen.printAt(5, 200,"BLUE WIN POINT");
       break;
     case 4:
-      Brain.Screen.setFillColor(color::blue);
-      Brain.Screen.printAt(5, 200,"BLUE LEFT QUAL");
       blue_left_qual_nopid_auto();
       break;
     case 5:
-      Brain.Screen.setFillColor(color::red);
-      Brain.Screen.printAt(5, 200,"ELIMS RED RUSH");
       // Elims Red Rush
       break;
     case 6:
       // Elims Blue Rush
-      Brain.Screen.setFillColor(color::blue);
-      Brain.Screen.printAt(5, 200,"ELIMS BLUE RUSH");
       break;
     case 7:
-      Brain.Screen.setFillColor(color::purple);
-      Brain.Screen.printAt(5, 200,"DRIVE TEST");
       drive_test();
       break;
     case 8:
-      Brain.Screen.setFillColor(color::purple);
-      Brain.Screen.printAt(5, 200,"TURN TEST");
       turn_test();
       break;
     default:
       //Do Nothing
-      Brain.Screen.setFillColor(color::black);
-      Brain.Screen.printAt(5, 200,"*** NO AUTO ***");
       break;
   }
   colorSortingTask.stop();
@@ -351,7 +335,7 @@ void setup_auto() {
 /// @brief Shoot the ring on alliance stake
 void shoot_alliance_ring() {
   conveyor.spinFor(directionType::fwd, 0.45,seconds); //was 0.6
-  conveyor.spinFor(directionType::rev, 0.15,seconds); //was 0.25
+  conveyor.spinFor(directionType::rev, 0.35,seconds); //was 0.25
   //conveyor.spin(reverse);
   //wait(0.3,seconds);
   conveyor.stop();
@@ -505,7 +489,7 @@ void red_wp_auto() {
   setup_auto();
 
   //Drive back and point towards alliance stake
-  chassis.drive_max_voltage = 6.0;
+  chassis.drive_max_voltage = 9.0;
   chassis.drive_distance(-11.30);   //Drive back (was 11.30)
   turn_to_heading_medium(90.0); //Turn so back of robot is parallel with alliance stake wall (was 87.5) 
   task::sleep(250); //let gyro settle
@@ -513,9 +497,9 @@ void red_wp_auto() {
  
   //Now drive backwards to Alliance stake
   chassis.drive_with_voltage(-2.5, -2.5);
-  task::sleep(600);
-  //while(backDistanceSensor.objectDistance(distanceUnits::mm)>65) task::sleep(5);
-  chassis.drive_stop(brake);
+  //task::sleep(600);
+  while(backDistanceSensor.objectDistance(distanceUnits::mm)>63) task::sleep(5);
+  chassis.drive_stop(hold);
   //task::sleep(10);
   
   // Now Shoot the preload ring onto alliance stake
@@ -526,7 +510,6 @@ void red_wp_auto() {
   chassis.drive_max_voltage = 12.0; //first drive straight towads the ladder
   chassis.drive_distance(20.0); //was 20
   turn_to_heading_large(215); //Then turn towads the mogo (was 215)
-
 
   //Now drive to the mogo and clamp it (Total distance to mogo = 15-16"")
   chassis.drive_distance(-15);  //fast in initial art of drive, then slow (was -14)
@@ -539,47 +522,44 @@ void red_wp_auto() {
   intakeAndConveyor.spin(fwd);
 
   //Now turn towards Neutral zone line and get a ring (the one closer to the ladder)
-  //This is a 2 ste tun to force a left turn
+  //This is a 2 step turn to force a left turn
   turn_to_heading_large(90.0);
   task::sleep(50);  //Give gyro time to settle
   turn_to_heading_tiny(45.0);  //Was 38; then 40; was _large; was 42.5 (_larrge)
   //task::sleep(250); //let gyro settle
   //if(chassis.Gyro.heading() > 42 || chassis.Gyro.heading() < 38) adjustHeading(40, 0.5, 100);  //Adjust heading so we are pointed to disk correctly
-
-  //Get first ring next to the neutral zone
+  //Drive to first ring next to the neutral zone
   chassis.drive_max_voltage = 12.0; //speed up again
-  //chassis.drive_timeout = 1200;
-  chassis.drive_distance(16.0); //Was 22.25
-  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing (was 800; then 650) 
+  chassis.drive_distance(15.5); //Was 22.25
+  task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 800; then 650) 
   
   //Get alliance side ring 
   chassis.drive_distance(-9); //Drive back a bit (was -9)
   turn_to_heading_small(337.5); //turn towards alliance side ring (was 345) [was _small]
   chassis.drive_distance(12.0); //Drive to alliance side ring (was 12)
-  task::sleep(300); //wait a bit to get ring and score it befoe doing the next thing (was 250, then 250) 
+  task::sleep(300); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 250, then 250) 
 
   //Get 2nd ring next to the neutral zone
   turn_to_heading_small(50); //Turn toards ring (was 55)
   chassis.drive_distance(12.25); //Drive to ring (was 13; then 12.25)
-  task::sleep(500); //wait a bit to get ring and score it befoe doing the next thing (was was  500; then 500)
+  task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was was  500; then 500)
 
-  //Now turn towads ladder
+  //All rings done, Now go touch the ladder
   chassis.drive_with_voltage(-12, -12); //First drive back a bit so we do not cross the line when turning towards ladder
   task::sleep(225);
   chassis.drive_stop(brake);
-  turn_to_heading_large(180); //Now turn towards ladder
-
   //Start raising the arm on a separate thread
   vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
-
-  //Drive to the Ladder while raising the arm
+  //Turn towards the ladder
+  turn_to_heading_large(180);
+  //Do a curve drive to the ladder
   chassis.drive_stop(coast);  //This sets the chassis stop mode to coast as a safety net
-  chassis.drive_with_voltage(4.75, 2.55); //Do a curve drive so we get more parallel to the ladder as we drive
+  chassis.drive_with_voltage(5.5, 2.95); //Do a curve drive so we get more parallel to the ladder as we drive (was 4.75, 2.55)
 
   //Keep diving to the ladder till we run out of time, then stop in coast mode
   while((Brain.Timer.value() - autonStartTime) < 15.0) {
-    task::sleep(5);
     //Do Nothing
+    task::sleep(5);
   }
   //Stop intake and conveyor
   intakeAndConveyor.stop(brakeType::coast);
