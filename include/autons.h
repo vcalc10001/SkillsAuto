@@ -4,10 +4,8 @@
 class Drive;
 
 extern Drive chassis;
-static int current_auton_selection = 1;
-static bool auto_started = false;
 
-void run_selected_auton();
+static bool auto_started = false;
 
 void default_constants();
 
@@ -19,9 +17,24 @@ void odom_test();
 void tank_odom_test();
 void holonomic_odom_test();
 
-void skills_auto();
 
+/*
+ 0 = Skills
+ 1 = Red WP (4 Rings + Ladder)
+ 2 = Red Right Side (2 ring + Ladder)
+ 3 = Blue WP (4 rings + Ladder)
+ 4 = Blue Left Side (2 ring + Ladder)
+ 5 = Red ELIMS RUSH (******** NOT IMPLEMENTED ********)
+ 6 = Blue ELIMS RUSH(******** NOT IMPLEMENTED ********)
+ 7 = Drive Test
+ 8 = Turn Test
+*/
+static int current_auton_selection = 3;
+
+void run_selected_auto();
+void skills_auto();
 void red_wp_auto();
+void blue_wp_auto();
 void red_right_qual_nopid_auto();
 void blue_left_qual_nopid_auto();
 
