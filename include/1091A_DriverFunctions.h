@@ -6,8 +6,6 @@
 
 using namespace vex;
 
-static bool rejectRed = false;
-
 //Mogo Functions
 void clampMogo(void);
 void releaseMogo(void);

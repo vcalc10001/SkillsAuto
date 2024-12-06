@@ -3,6 +3,20 @@
 using namespace vex;
 competition Competition;
 bool in_user_control = false;
+bool auto_started = false;
+/*
+ 0 = Skills
+ 1 = Red WP (4 Rings + Ladder)
+ 2 = Red Right Side (2 ring + Ladder)
+ 3 = Blue WP (4 rings + Ladder)
+ 4 = Blue Left Side (2 ring + Ladder)
+ 5 = Red ELIMS RUSH (******** NOT IMPLEMENTED ********)
+ 6 = Blue ELIMS RUSH(******** NOT IMPLEMENTED ********)
+ 7 = Drive Test
+ 8 = Turn Test
+*/
+int current_auton_selection = 0;
+bool rejectRedRings = false;
 
 /*---------------------------------------------------------------------------*/
 /*                             VEXcode Config                                */
@@ -199,14 +213,14 @@ void pre_auton() {
 
   while(!auto_started) {
     Brain.Screen.setFont(fontType::mono20);
-    Brain.Screen.printAt(5, 20, "Battery Percentage:"); //Line 1
-    Brain.Screen.printAt(5, 40, "%d", Brain.Battery.capacity()); //Line 2
-    Brain.Screen.printAt(5, 60, "Chassis Heading Reading:"); //Line 3
-    Brain.Screen.printAt(5, 80, "%f", chassis.Gyro.heading()); //Line 4
-    // Brain.Screen.printAt(5, 100, "Color reading:"); //Line 5
-    // Brain.Screen.printAt(5, 120, "%f", myOptical.hue());
-    Brain.Screen.printAt(5, 100, "Distance reading:"); //Line 5
-    Brain.Screen.printAt(5, 120, "%f", backDistanceSensor.objectDistance(distanceUnits::mm));
+    Brain.Screen.setFillColor(color::black);
+    Brain.Screen.printAt(5,20,"Battery Percentage: %d", Brain.Battery.capacity()); 
+
+    Brain.Screen.printAt(5, 40,"Chassis Heading Reading: %000.4f", chassis.Gyro.heading());
+
+    Brain.Screen.printAt(5,60,"Color reading: %d", (int) myOptical.hue());
+
+    Brain.Screen.printAt(5,80,"Distance reading: %d", (int) backDistanceSensor.objectDistance(distanceUnits::mm));
 
     printAutonMode();
     

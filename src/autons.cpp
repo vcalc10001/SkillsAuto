@@ -2,6 +2,11 @@
 
 using namespace vex;
 
+extern bool auto_started;
+extern bool in_user_control;
+extern int current_auton_selection;
+extern bool rejectRedRings;
+
 /* Test Change */
 
 /**
@@ -274,40 +279,64 @@ double autonStartTime = 0.0;
 /* Funtion registered to run when Auto is started*/
 void run_selected_auto()
 {
+  vex::task colorSortingTask;
   autonStartTime = Brain.Timer.value();
   auto_started = true;
-
-  //Start raising the arm on a separate thread
-  vex::task colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-
   printAutonMode();
 
   switch(current_auton_selection) {
     case 0:
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       skills_auto();
       break;
     case 1:
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       red_wp_auto();
       break;
     case 2:
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       red_right_qual_nopid_auto();
       break;
     case 3:
+      rejectRedRings=true;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       blue_wp_auto();
       break;
     case 4:
+      rejectRedRings=true;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       blue_left_qual_nopid_auto();
       break;
     case 5:
       // Elims Red Rush
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       break;
     case 6:
       // Elims Blue Rush
+      rejectRedRings=true;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       break;
     case 7:
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       drive_test();
       break;
     case 8:
+      rejectRedRings=false;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       turn_test();
       break;
     default:
@@ -349,8 +378,6 @@ void arm_get(){
 /// @brief Skills Auto
 void skills_auto() {
   //Set Ring Filtering to filter Blue rings
-  rejectRed = false;
-
   setup_auto();
   chassis.drive_max_voltage=9;
   chassis.turn_max_voltage=9;
@@ -481,9 +508,6 @@ chassis.drive_max_voltage=9;
 
 /// @brief Red Win Point Auto (Red - left side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
 void red_wp_auto() {
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = false;
-
   setup_auto();
 
   //Drive back and point towards alliance stake
@@ -504,7 +528,6 @@ void red_wp_auto() {
   shoot_alliance_ring();
 
   //Now drive forward and tun towards the mogo
-  //chassis.set_heading(90);  // ********************** THIS IS TESTING CODE - REMOVE IT ***********************
   chassis.drive_max_voltage = 12.0; //first drive straight towads the ladder
   chassis.drive_distance(20.0); //was 20
   turn_to_heading_large(215); //Then turn towads the mogo (was 215)
@@ -566,9 +589,6 @@ void red_wp_auto() {
 
 /// @brief Blue side Win Point Auto (BLUE - Right side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
 void blue_wp_auto() {
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = true;
-
   setup_auto();
 
   //Drive back and point towards alliance stake
@@ -588,12 +608,10 @@ void blue_wp_auto() {
   // Now Shoot the preload ring onto alliance stake
   shoot_alliance_ring();
 
-/*
   //Now drive forward and tun towards the mogo
-  //chassis.set_heading(90);  // ********************** THIS IS TESTING CODE - REMOVE IT ***********************
   chassis.drive_max_voltage = 12.0; //first drive straight towads the ladder
   chassis.drive_distance(20.0); //was 20
-  turn_to_heading_large(215); //Then turn towads the mogo (was 215)
+  turn_to_heading_large(145); //reverse of red (360-215=145)
 
   //Now drive to the mogo and clamp it (Total distance to mogo = 15-16"")
   chassis.drive_distance(-15);  //fast in initial art of drive, then slow (was -14)
@@ -605,11 +623,12 @@ void blue_wp_auto() {
   //Start intake and conveyor
   intakeAndConveyor.spin(fwd);
 
+
   //Now turn towards Neutral zone line and get a ring (the one closer to the ladder)
   //This is a 2 step turn to force a left turn
-  turn_to_heading_large(90.0);
+  turn_to_heading_large(270.0); //Reverse of red (360-90 = 270)
   task::sleep(50);  //Give gyro time to settle
-  turn_to_heading_tiny(45.0);  //Was 38; then 40; was _large; was 42.5 (_larrge)
+  turn_to_heading_tiny(315.0);  //Reverse of red (360-45 = 315)
   //task::sleep(250); //let gyro settle
   //if(chassis.Gyro.heading() > 42 || chassis.Gyro.heading() < 38) adjustHeading(40, 0.5, 100);  //Adjust heading so we are pointed to disk correctly
   //Drive to first ring next to the neutral zone
@@ -619,6 +638,7 @@ void blue_wp_auto() {
   
   //Get alliance side ring 
   chassis.drive_distance(-9); //Drive back a bit (was -9)
+/*
   turn_to_heading_small(337.5); //turn towards alliance side ring (was 345) [was _small]
   chassis.drive_distance(12.0); //Drive to alliance side ring (was 12)
   task::sleep(300); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 250, then 250) 
@@ -667,9 +687,6 @@ void blue_wp_auto() {
 //5. Score that
 //6. Touch Ladder
 void red_right_qual_nopid_auto() {
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = false;
-
   //Drive to Mogo
   chassis.drive_with_voltage(-6,-6);
   task::sleep(750);
@@ -731,9 +748,6 @@ void red_right_qual_nopid_auto() {
 //5. Score that
 //6. Touch Ladder
 void blue_left_qual_nopid_auto() {
-  //Set Ring Filtering to filter Blue rings
-  rejectRed = true;
-
   //Drive to Mogo
   chassis.drive_with_voltage(-6,-6);
   task::sleep(750);

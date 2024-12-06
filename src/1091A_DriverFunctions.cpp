@@ -1,5 +1,10 @@
 #include "vex.h"
 
+extern bool auto_started;
+extern bool in_user_control;
+extern int current_auton_selection;
+extern bool rejectRedRings;
+
 /*---------------------------------------------------------------------------*/
 /*  These are our Driver control Functions                                   */
 /*---------------------------------------------------------------------------*/
@@ -27,7 +32,7 @@ void raiseDoinker(void) {
 /// @brief Called in a loop in conveyor button function and auton color sorting task
 void checkAndFilterBadRing() {
   //When color sensor sees the the rings we want to reject, stop conveyor momentarily so that the ring flies off
-  if(rejectRed) { //Reject Red Rings
+  if(rejectRedRings) { //Reject Red Rings
     if (myOptical.hue() < 25) { //Red Hue is generally around 20 or lower
       task::sleep(13); //Wait a bit before stopping conveyor
       intakeAndConveyor.stop();
