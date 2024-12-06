@@ -9,14 +9,14 @@ competition Competition;
  0 = Skills
  1 = Red WP (4 Rings + Ladder)
  2 = Red Right Side (2 ring + Ladder)
- 3 = Blue WP (4 rings + Ladder)
- 4 = Blue Left Side (2 ring + Ladder)
- 5 = Red ELIMS (WP w/o Ladder) (******** NOT IMPLEMENTED ********)
- 6 = Blue ELIMS (WP w/o Ladder) (******** NOT IMPLEMENTED ********)
+ 3 = Red ELIMS (WP w/o Ladder)
+ 4 = Blue WP (4 rings + Ladder)
+ 5 = Blue Left Side (2 ring + Ladder)
+ 6 = Blue ELIMS (WP w/o Ladder)
  7 = Drive Test
  8 = Turn Test
 */
-int current_auton_selection = 3;
+int current_auton_selection = 5;
 bool rejectRedRings = true;
 
 bool userControl_started = false;
@@ -132,44 +132,44 @@ void printAutonMode() {
 
     switch(current_auton_selection) {
       case 0:
-        Brain.Screen.setFillColor(color::green);
-        Brain.Screen.printAt(5, 200, "SKILLS");
+        Brain.Screen.setFillColor(color::purple);
+        Brain.Screen.printAt(5, 200, "SKILLS        ");
         break;
       case 1:
         Brain.Screen.setFillColor(color::red);
-        Brain.Screen.printAt(5, 200, "RED WIN POINT");
+        Brain.Screen.printAt(5, 200, "RED WIN POINT ");
         break;
       case 2:
         Brain.Screen.setFillColor(color::red);
-        Brain.Screen.printAt(5, 200,"RED RIGHT QUAL");
+        Brain.Screen.printAt(5, 200,"RED RIGHT QUAL ");
         break;
       case 3:
-        Brain.Screen.setFillColor(color::blue);
-        Brain.Screen.printAt(5, 200,"BLUE WIN POINT");
+        Brain.Screen.setFillColor(color::red);
+        Brain.Screen.printAt(5, 200,"ELIMS RED      ");
         break;
       case 4:
         Brain.Screen.setFillColor(color::blue);
-        Brain.Screen.printAt(5, 200,"BLUE LEFT QUAL");
+        Brain.Screen.printAt(5, 200,"BLUE WIN POINT ");
         break;
       case 5:
-        Brain.Screen.setFillColor(color::red);
-        Brain.Screen.printAt(5, 200,"ELIMS RED");
+        Brain.Screen.setFillColor(color::blue);
+        Brain.Screen.printAt(5, 200,"BLUE LEFT QUAL ");
         break;
       case 6:
         Brain.Screen.setFillColor(color::blue);
-        Brain.Screen.printAt(5, 200,"ELIMS BLUE");
+        Brain.Screen.printAt(5, 200,"ELIMS BLUE     ");
         break;
       case 7:
-        Brain.Screen.setFillColor(color::purple);
-        Brain.Screen.printAt(5, 200,"DRIVE TEST");
+        Brain.Screen.setFillColor(color::green);
+        Brain.Screen.printAt(5, 200,"DRIVE TEST     ");
         break;
       case 8:
-        Brain.Screen.setFillColor(color::purple);
-        Brain.Screen.printAt(5, 200,"TURN TEST");
+        Brain.Screen.setFillColor(color::green);
+        Brain.Screen.printAt(5, 200,"TURN TEST      ");
         break;
       default:
         Brain.Screen.setFillColor(color::black);
-        Brain.Screen.printAt(5, 200,"*** NO AUTO ***");
+        Brain.Screen.printAt(5, 200,"--- NO AUTO ---");
         break;
     }
 }

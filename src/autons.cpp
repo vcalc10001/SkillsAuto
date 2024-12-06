@@ -3,8 +3,6 @@
 
 using namespace vex;
 
-/* Test Change */
-
 /**
  * Resets the constants for auton movement.
  * Modify these to change the default behavior of functions like
@@ -301,24 +299,24 @@ void run_selected_auto()
       red_right_qual_nopid_auto();
       break;
     case 3:
-      rejectRedRings=true;
-      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
-      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      blue_wp_auto();
-      break;
-    case 4:
-      rejectRedRings=true;
-      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
-      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      blue_left_qual_nopid_auto();
-      break;
-    case 5:
       // Elims Red Rush
       rejectRedRings=false;
       isElimsAuto = true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
       red_wp_auto();
+      break;
+    case 4:
+      rejectRedRings=true;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
+      blue_wp_auto();
+      break;
+    case 5:
+      rejectRedRings=true;
+      //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
+      colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
+      blue_left_qual_nopid_auto();
       break;
     case 6:
       // Elims Blue Rush
@@ -814,9 +812,9 @@ void red_right_qual_nopid_auto() {
 
   //Intake is already spinning, drive to get the 2nd disc
   chassis.drive_with_voltage(6,6);
-  task::sleep(700);
+  task::sleep(800); //Was 700, increased to 800 to make sure we get ring
   chassis.drive_stop(brake);
-  task::sleep(500);
+  task::sleep(750);
 
   //Now Right Turn towards Ladder (turn #1)
   chassis.drive_with_voltage(-8, 8);
@@ -877,7 +875,7 @@ void blue_left_qual_nopid_auto() {
   chassis.drive_with_voltage(6,6);
   task::sleep(700);
   chassis.drive_stop(brake);
-  task::sleep(500);
+  task::sleep(750);
 
   //Now Left Turn towards Ladder (turn #1)
   chassis.drive_with_voltage(8, -8);
