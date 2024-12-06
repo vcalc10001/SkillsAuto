@@ -33,6 +33,7 @@ extern optical myOptical;
 extern inertial myInertial;
 
 extern distance backDistanceSensor;
+extern distance frontDistanceSensor;
 
 extern bumper autonSelectorBumper;
 

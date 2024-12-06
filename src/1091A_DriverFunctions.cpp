@@ -1,9 +1,5 @@
 #include "vex.h"
-
-extern bool auto_started;
-extern bool in_user_control;
-extern int current_auton_selection;
-extern bool rejectRedRings;
+#include "globals.h"
 
 /*---------------------------------------------------------------------------*/
 /*  These are our Driver control Functions                                   */

@@ -38,6 +38,7 @@ optical myOptical = optical(PORT12);
 inertial myInertial = inertial(PORT6);
 
 distance backDistanceSensor = distance(PORT19);
+distance frontDistanceSensor = distance(PORT18);
 
 bumper autonSelectorBumper = bumper(Brain.ThreeWirePort.F);
 
@@ -81,7 +82,7 @@ void vexcodeInit( void ) {
   //Set Arm speed and Torque
   arm.setVelocity(100, percentUnits::pct);
   arm.setMaxTorque(100, percentUnits::pct);
-  arm.setStopping(brakeType::hold);
+  arm.setStopping(brakeType::brake);
 
   //Set Arm Rotation Sensor position
   armRotation.setPosition(0, rotationUnits::deg);

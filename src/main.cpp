@@ -1,22 +1,27 @@
 #include "vex.h"
 
 using namespace vex;
+
 competition Competition;
-bool in_user_control = false;
-bool auto_started = false;
+
+
 /*
  0 = Skills
  1 = Red WP (4 Rings + Ladder)
  2 = Red Right Side (2 ring + Ladder)
  3 = Blue WP (4 rings + Ladder)
  4 = Blue Left Side (2 ring + Ladder)
- 5 = Red ELIMS RUSH (******** NOT IMPLEMENTED ********)
- 6 = Blue ELIMS RUSH(******** NOT IMPLEMENTED ********)
+ 5 = Red ELIMS (WP w/o Ladder) (******** NOT IMPLEMENTED ********)
+ 6 = Blue ELIMS (WP w/o Ladder) (******** NOT IMPLEMENTED ********)
  7 = Drive Test
  8 = Turn Test
 */
-int current_auton_selection = 0;
-bool rejectRedRings = false;
+int current_auton_selection = 3;
+bool rejectRedRings = true;
+
+bool userControl_started = false;
+bool auto_started = false;
+double autonStartTime = 0.0;
 
 /*---------------------------------------------------------------------------*/
 /*                             VEXcode Config                                */
@@ -148,11 +153,11 @@ void printAutonMode() {
         break;
       case 5:
         Brain.Screen.setFillColor(color::red);
-        Brain.Screen.printAt(5, 200,"ELIMS RED RUSH");
+        Brain.Screen.printAt(5, 200,"ELIMS RED");
         break;
       case 6:
         Brain.Screen.setFillColor(color::blue);
-        Brain.Screen.printAt(5, 200,"ELIMS BLUE RUSH");
+        Brain.Screen.printAt(5, 200,"ELIMS BLUE");
         break;
       case 7:
         Brain.Screen.setFillColor(color::purple);
@@ -182,6 +187,28 @@ void onAutonSelectorPressed()
   }
 }
 
+int printSensorValues()
+{
+  Brain.Screen.clearScreen();
+  while(true) {
+    Brain.Screen.setFont(fontType::mono20);
+    Brain.Screen.setFillColor(color::black);
+    Brain.Screen.printAt(5,20,"Battery Percentage: %03d", Brain.Battery.capacity()); 
+
+    Brain.Screen.printAt(5, 40,"Chassis Heading Reading: %0.4f", chassis.Gyro.heading());
+
+    Brain.Screen.printAt(5,60,"Color reading: %04d", (int) myOptical.hue());
+
+    Brain.Screen.printAt(5,80,"Front Distance reading: %04d", (int) frontDistanceSensor.objectDistance(distanceUnits::mm));
+
+    Brain.Screen.printAt(5,100,"Back Distance reading: %04d", (int) backDistanceSensor.objectDistance(distanceUnits::mm));
+
+    printAutonMode();
+    
+    task::sleep(250);
+  }
+  return 0;
+}
 /**
  * Function before autonomous. It prints the current auton number on the screen
  * and tapping the screen cycles the selected auton by 1. Add anything else you
@@ -209,23 +236,9 @@ void pre_auton() {
   Controller1.ButtonB.pressed(raiseDoinker);
 
   autonSelectorBumper.pressed(onAutonSelectorPressed);
-  Brain.Screen.clearScreen();
 
-  while(!auto_started) {
-    Brain.Screen.setFont(fontType::mono20);
-    Brain.Screen.setFillColor(color::black);
-    Brain.Screen.printAt(5,20,"Battery Percentage: %d", Brain.Battery.capacity()); 
-
-    Brain.Screen.printAt(5, 40,"Chassis Heading Reading: %000.4f", chassis.Gyro.heading());
-
-    Brain.Screen.printAt(5,60,"Color reading: %d", (int) myOptical.hue());
-
-    Brain.Screen.printAt(5,80,"Distance reading: %d", (int) backDistanceSensor.objectDistance(distanceUnits::mm));
-
-    printAutonMode();
-    
-    task::sleep(10);
-  }
+  //start a task to continously print sensor values on brain screen on a separate thread
+  task printSensorValuesTask = vex::task(printSensorValues, vex::task::taskPrioritylow);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -240,7 +253,7 @@ void pre_auton() {
 
 void usercontrol(void) {
   auto_started = false;
-  in_user_control = true;
+  userControl_started = true;
   Brain.Screen.clearScreen();
 
   // User control code here, inside the loop
@@ -261,7 +274,7 @@ void usercontrol(void) {
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }
-  in_user_control = false;
+  userControl_started = false;
 }
 
 //

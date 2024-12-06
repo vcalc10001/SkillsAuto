@@ -1,11 +1,7 @@
 #include "vex.h"
+#include "globals.h"
 
 using namespace vex;
-
-extern bool auto_started;
-extern bool in_user_control;
-extern int current_auton_selection;
-extern bool rejectRedRings;
 
 /* Test Change */
 
@@ -275,7 +271,8 @@ int ringSortingAutonTask() {
   return 0;
 }
 
-double autonStartTime = 0.0;
+bool isElimsAuto = false;
+
 /* Funtion registered to run when Auto is started*/
 void run_selected_auto()
 {
@@ -318,14 +315,18 @@ void run_selected_auto()
     case 5:
       // Elims Red Rush
       rejectRedRings=false;
+      isElimsAuto = true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
+      red_wp_auto();
       break;
     case 6:
       // Elims Blue Rush
       rejectRedRings=true;
+      isElimsAuto = true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
+      blue_wp_auto();
       break;
     case 7:
       rejectRedRings=false;
@@ -346,7 +347,7 @@ void run_selected_auto()
   colorSortingTask.stop();
   auto_started = false;
   Brain.Screen.setFont(fontType::mono20);
-  Brain.Screen.printAt(5, 140, "TotalTme: %f", Brain.Timer.value() - autonStartTime);
+  Brain.Screen.printAt(5, 120, "TotalTme: %.3f", Brain.Timer.value() - autonStartTime);
 }
 
 void setup_auto() {
@@ -359,12 +360,14 @@ void setup_auto() {
   arm.setVelocity(100, percent);
   arm.setMaxTorque(100,percent);
   chassis.set_heading(0.0);
+  chassis.Gyro.resetHeading();
+  chassis.Gyro.resetRotation();
 }
 
 /// @brief Shoot the ring on alliance stake
 void shoot_alliance_ring() {
   conveyor.spinFor(directionType::fwd, 0.45,seconds); //was 0.6
-  conveyor.spinFor(directionType::rev, 0.35,seconds); //was 0.25
+  conveyor.spinFor(directionType::rev, 0.20,seconds); //was 0.25
   //conveyor.spin(reverse);
   //wait(0.3,seconds);
   conveyor.stop();
@@ -377,13 +380,11 @@ void arm_get(){
 
 /// @brief Skills Auto
 void skills_auto() {
-  //Set Ring Filtering to filter Blue rings
   setup_auto();
   chassis.drive_max_voltage=9;
   chassis.turn_max_voltage=9;
   arm.setMaxTorque(100,percent);
   arm.setVelocity(100,percent);
-  
   
   /*
   shoot_alliance_ring();
@@ -391,34 +392,136 @@ void skills_auto() {
   //chassis.drive_timeout=400;
   chassis.drive_distance(3.8);
   turn_to_heading_large(255);
-  chassis.drive_timeout=2000;
-  chassis.turn_timeout=900;
+  //chassis.drive_timeout=2000;
+  //chassis.turn_timeout=900;
+
+  //grab 1st mogo
   chassis.drive_distance(-8);
   chassis.drive_max_voltage=3;
-  chassis.drive_distance(-11);
+  chassis.drive_distance(-12);
 
   //Go get the fist ring
   chassis.drive_max_voltage=8;
   clampMogo(); //mogo.set(true);
-  task::sleep(50);
+  task::sleep(100);
   turn_to_heading_medium(0);
+  wait(0.01,seconds);
   
-  chassis.drive_max_voltage=11;
+  chassis.drive_max_voltage=7.5;
   chassis.turn_max_voltage=10.5;
   intakeAndConveyor.spin(forward); 
-  chassis.drive_distance(27.5);
-  task::sleep(50);
-  chassis.drive_distance(-7); //drive back a bit to make sure we miss the ladder edge when we go to get the next disk
+  chassis.drive_distance(30);
+  task::sleep(90);
+  chassis.drive_distance(-11); //drive back a bit to make sure we miss the ladder edge when we go to get the next disk
 
   //go grab the disk into the arm
-  turn_to_heading_tiny(26.0);  //was 25.25
-  arm_get();
+  chassis.turn_max_voltage=6;
+  turn_to_heading_tiny(16);  //was 25.25
+  chassis.turn_max_voltage=9;
   chassis.drive_distance(50);
   chassis.drive_max_voltage=8;
-  chassis.drive_distance(8);
-  task::sleep(100);//wait(0.1,seconds);
+  chassis.drive_distance(10);
+  task::sleep(100);
+  //wait(0.1,seconds);
 
+  //getting disk near wall stake
+  chassis.drive_distance(-2);
+  turn_to_heading_xlarge(160);
+  task::sleep(250);
+  chassis.drive_distance(22);
+  wait(0.4,seconds);
+  chassis.drive_distance(-14.5);
+  //wait(100,msec);
+
+  //grabbing the 3 disks in a row.
+  turn_to_heading_tiny(180);
+  adjustHeading(180,2,100);
+  chassis.drive_distance(32);
+  //wait(100,msec);
+  chassis.drive_max_voltage=4;
+  chassis.drive_distance(24);
+  wait(0.365,seconds);
+  chassis.drive_max_voltage=2.75;
+  chassis.drive_distance(12);
+  wait(0.3,seconds);
+
+  //turning to drop mogo
+  turn_to_heading_large(307);
+  chassis.drive_with_voltage(-8,-8);
+  task::sleep(350);
+  wait(250,msec);
+  releaseMogo();
+  task::sleep(400);
+
+  //reset after mogo drop in corner
+  chassis.drive_distance(7);
+  
+
+
+ //STARTING SECOND QUADRANT OF AUTO
+
+ //first mogo pick up
  
+ //temporary for test purposes
+ chassis.set_heading(325);
+ turn_to_heading_medium(70);
+ chassis.drive_distance(-22);
+ chassis.drive_max_voltage=6;
+ chassis.drive_distance(-17);
+ clampMogo();
+ wait(100, msec);
+ turn_to_heading_medium(0);
+ intakeAndConveyor.spin(forward);
+ chassis.drive_distance(21.5);  //first disk on mogo
+ turn_to_heading_medium(270);
+ chassis.drive_distance(24);  //2nd disk on mogo
+ turn_to_heading_medium(180);
+ wait(250, msec);
+ adjustHeading(180, 0.5, 100); 
+ chassis.drive_max_voltage=6;
+ chassis.drive_distance(22.5);  //3rd disk
+ chassis.drive_max_voltage=4;
+ chassis.drive_distance(11); //4th disk
+ chassis.drive_max_voltage=12;
+ chassis.drive_distance(-23);
+ turn_to_heading_tiny(215);
+ chassis.drive_max_voltage=8;
+ chassis.drive_distance(18);  //5th disk
+ wait(250, msec); 
+ */
+  
+// INTERMEDIATE REQUIRED
+
+//temporary set heading
+chassis.drive_max_voltage=8.5;
+chassis.set_heading(0);
+gotoReceiveRingPosition();
+intakeAndConveyor.spin(forward);
+chassis.drive_distance(38.5);
+wait(0.2,seconds);
+chassis.drive_max_voltage=4.5;
+chassis.drive_distance(7.5);
+turn_to_heading_medium(270);
+intakeAndConveyor.stop(coast);
+wait(250,msec);
+adjustHeading(270,0.5,100);
+spinArmUpForLadder();
+wait(100,msec);
+chassis.drive_distance(-5);
+spinArmBackDown();
+
+
+
+ /*
+ turn_to_heading_medium(315);
+  chassis.drive_distance(15);
+  wait(0.2,seconds);
+  chassis.drive_distance(-15);
+  turn_to_heading_large(180);
+  intake.spin(forward);
+  conveyor.spin(reverse);
+  chassis.drive_distance(40);
+
   //aligning to wall stake
   chassis.drive_with_voltage(6, -6);  //First turn to the left bit so we can drive back and turn more easily (and miss the ladder)
   task::sleep(75);
@@ -480,7 +583,7 @@ chassis.drive_max_voltage=9;
  chassis.drive_distance(-13);
  mogo.set(true); 
  //picked
- */
+ 
  chassis.set_heading(77); //setting heading one time
  mogo.set(true);
  task::sleep(100);
@@ -490,7 +593,7 @@ chassis.drive_max_voltage=9;
  chassis.drive_max_voltage=8;
  chassis.drive_distance(15.5);
  task::sleep(700);
- arm_get();
+ gotoReceiveRingPosition();
  turn_to_heading_small(334); 
  chassis.drive_distance(42.5);
  turn_to_heading_small(285);
@@ -502,11 +605,12 @@ chassis.drive_max_voltage=9;
  task::sleep(1000);
  arm.stop();
  //on stake?
-
-
+ */
 }
 
+/* -------------------------------------------------------------------------------------------------------------------------- */
 /// @brief Red Win Point Auto (Red - left side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
+/* -------------------------------------------------------------------------------------------------------------------------- */
 void red_wp_auto() {
   setup_auto();
 
@@ -564,20 +668,22 @@ void red_wp_auto() {
   turn_to_heading_small(50); //Turn toards ring (was 55)
   chassis.drive_distance(12.25); //Drive to ring (was 13; then 12.25)
   task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was was  500; then 500)
-
-  //All rings done, Now go touch the ladder
-  chassis.drive_with_voltage(-12, -12); //First drive back a bit so we do not cross the line when turning towards ladder
+  chassis.drive_with_voltage(-12, -12); //Now drive back a bit so we do not cross the line when turning towards ladder
   task::sleep(225);
   chassis.drive_stop(brake);
-  //Start raising the arm on a separate thread
-  vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
-  //Turn towards the ladder
-  turn_to_heading_large(180);
-  //Do a curve drive to the ladder
-  chassis.drive_stop(coast);  //This sets the chassis stop mode to coast as a safety net
-  chassis.drive_with_voltage(5.5, 2.95); //Do a curve drive so we get more parallel to the ladder as we drive (was 4.75, 2.55)
 
-  //Keep diving to the ladder till we run out of time, then stop in coast mode
+  //In Elims, do not run code to touch ladder; otherwise go touch the ladder
+  if(!isElimsAuto) {
+    //Turn towards the ladder
+    turn_to_heading_large(180);
+    //Raise arm on a separate thread while driving 
+    vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
+    //Do a curve drive to the ladder
+    chassis.drive_stop(coast);  //This sets the chassis stop mode to coast as a safety net
+    chassis.drive_with_voltage(5.5, 2.95); //Do a curve drive so we get more parallel to the ladder as we drive (was 4.75, 2.55)
+  }
+
+  //Wait till we run out of time, then stop
   while((Brain.Timer.value() - autonStartTime) < 15.0) {
     //Do Nothing
     task::sleep(5);
@@ -587,7 +693,9 @@ void red_wp_auto() {
   chassis.drive_stop(coast);  
 }
 
+/* -------------------------------------------------------------------------------------------------------------------------- */
 /// @brief Blue side Win Point Auto (BLUE - Right side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
+/* -------------------------------------------------------------------------------------------------------------------------- */
 void blue_wp_auto() {
   setup_auto();
 
@@ -623,44 +731,42 @@ void blue_wp_auto() {
   //Start intake and conveyor
   intakeAndConveyor.spin(fwd);
 
-
   //Now turn towards Neutral zone line and get a ring (the one closer to the ladder)
   //This is a 2 step turn to force a left turn
   turn_to_heading_large(270.0); //Reverse of red (360-90 = 270)
   task::sleep(50);  //Give gyro time to settle
-  turn_to_heading_tiny(315.0);  //Reverse of red (360-45 = 315)
-  //task::sleep(250); //let gyro settle
-  //if(chassis.Gyro.heading() > 42 || chassis.Gyro.heading() < 38) adjustHeading(40, 0.5, 100);  //Adjust heading so we are pointed to disk correctly
-  //Drive to first ring next to the neutral zone
+  turn_to_heading_tiny(306.0);  //Reverse of red (360-45 = 315) [should be 315]
   chassis.drive_max_voltage = 12.0; //speed up again
-  chassis.drive_distance(15.5); //Was 22.25
+  chassis.drive_distance(19.0); //Was 15.5
   task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 800; then 650) 
   
   //Get alliance side ring 
-  chassis.drive_distance(-9); //Drive back a bit (was -9)
-/*
-  turn_to_heading_small(337.5); //turn towards alliance side ring (was 345) [was _small]
-  chassis.drive_distance(12.0); //Drive to alliance side ring (was 12)
-  task::sleep(300); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 250, then 250) 
+  chassis.drive_distance(-11.5); //Drive back a bit (was -9)
+  turn_to_heading_small(15); //turn towards alliance side ring
+  chassis.drive_distance(13.0); //Drive to alliance side ring (was 12)
+  task::sleep(250); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 250, then 250) 
 
   //Get 2nd ring next to the neutral zone
-  turn_to_heading_small(50); //Turn toards ring (was 55)
-  chassis.drive_distance(12.25); //Drive to ring (was 13; then 12.25)
-  task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was was  500; then 500)
-
-  //All rings done, Now go touch the ladder
-  chassis.drive_with_voltage(-12, -12); //First drive back a bit so we do not cross the line when turning towards ladder
-  task::sleep(225);
+  turn_to_heading_small(300); //Turn toards ring
+  chassis.drive_distance(14); //Drive to ring
+  task::sleep(450); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was was  500; then 500)
+  chassis.drive_with_voltage(-12, -12); //Now drive back a bit so we do not cross the line when turning towards ladder
+  task::sleep(200); //was 225  
   chassis.drive_stop(brake);
-  //Start raising the arm on a separate thread
-  vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
-  //Turn towards the ladder
-  turn_to_heading_large(180);
-  //Do a curve drive to the ladder
-  chassis.drive_stop(coast);  //This sets the chassis stop mode to coast as a safety net
-  chassis.drive_with_voltage(5.5, 2.95); //Do a curve drive so we get more parallel to the ladder as we drive (was 4.75, 2.55)
-
-  //Keep diving to the ladder till we run out of time, then stop in coast mode
+  
+  //In Elims, do not run code to touch ladder; otherwise go touch the ladder
+  if(!isElimsAuto) {
+    //All rings done, Now go touch the ladder
+    //Turn towards the ladder
+    turn_to_heading_xlarge(190); //Should be 180, but turn a bit less to save time
+    //Raise arm on a separate thread while driving 
+    vex::task armTask(spinArmUpForLadder, vex::task::taskPriorityNormal);
+    //Do a curve drive to the ladder
+    chassis.drive_stop(coast);  //This sets the chassis stop mode to coast as a safety net
+    chassis.drive_with_voltage(3.0, 5.75); //Do a curve drive so we get more parallel to the ladder as we drive (was 4.75, 2.55)
+  }
+  
+  //Wait till we run out of time, then stop
   while((Brain.Timer.value() - autonStartTime) < 15.0) {
     //Do Nothing
     task::sleep(5);
@@ -668,7 +774,6 @@ void blue_wp_auto() {
   //Stop intake and conveyor
   intakeAndConveyor.stop(brakeType::coast);
   chassis.drive_stop(coast);  
-*/
 }
 
 /* ***************************************** */
