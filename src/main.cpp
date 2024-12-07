@@ -16,8 +16,8 @@ competition Competition;
  7 = Drive Test
  8 = Turn Test
 */
-int current_auton_selection = 5;
-bool rejectRedRings = true;
+int current_auton_selection = 1;
+bool rejectRedRings = false;  //Set to TRUE for 4, 5, 6.  FALSE for others
 
 bool userControl_started = false;
 bool auto_started = false;

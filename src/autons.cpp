@@ -649,22 +649,20 @@ void red_wp_auto() {
   turn_to_heading_large(90.0);
   task::sleep(50);  //Give gyro time to settle
   turn_to_heading_tiny(45.0);  //Was 38; then 40; was _large; was 42.5 (_larrge)
-  //task::sleep(250); //let gyro settle
-  //if(chassis.Gyro.heading() > 42 || chassis.Gyro.heading() < 38) adjustHeading(40, 0.5, 100);  //Adjust heading so we are pointed to disk correctly
   //Drive to first ring next to the neutral zone
   chassis.drive_max_voltage = 12.0; //speed up again
-  chassis.drive_distance(15.5); //Was 22.25
+  chassis.drive_distance(15.0); //Was 22.25
   task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 800; then 650) 
   
   //Get alliance side ring 
   chassis.drive_distance(-9); //Drive back a bit (was -9)
-  turn_to_heading_small(337.5); //turn towards alliance side ring (was 345) [was _small]
-  chassis.drive_distance(12.0); //Drive to alliance side ring (was 12)
+  turn_to_heading_small(342.5); //turn towards alliance side ring (was 337.5)
+  chassis.drive_distance(13.0); //Drive to alliance side ring (was 12)
   task::sleep(300); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was 250, then 250) 
 
   //Get 2nd ring next to the neutral zone
-  turn_to_heading_small(50); //Turn toards ring (was 55)
-  chassis.drive_distance(12.25); //Drive to ring (was 13; then 12.25)
+  turn_to_heading_small(55); //Turn toards ring (was 55)
+  chassis.drive_distance(13.0); //Drive to ring (was 13; then 12.25)
   task::sleep(500); //wait a bit for intake to suck the ring and score it befoe doing the next thing (was was  500; then 500)
   chassis.drive_with_voltage(-12, -12); //Now drive back a bit so we do not cross the line when turning towards ladder
   task::sleep(225);
