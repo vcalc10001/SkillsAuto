@@ -17,8 +17,8 @@ void holonomic_odom_test();
 
 void run_selected_auto();
 void skills_auto();
-void red_wp_auto();
-void blue_wp_auto();
+void red_wp_auto(bool doLadderDrive);
+void blue_wp_auto(bool doLadderDrive);
 void red_right_qual_nopid_auto();
 void blue_left_qual_nopid_auto();
 

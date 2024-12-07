@@ -269,8 +269,6 @@ int ringSortingAutonTask() {
   return 0;
 }
 
-bool isElimsAuto = false;
-
 /* Funtion registered to run when Auto is started*/
 void run_selected_auto()
 {
@@ -290,7 +288,7 @@ void run_selected_auto()
       rejectRedRings=false;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      red_wp_auto();
+      red_wp_auto(true);
       break;
     case 2:
       rejectRedRings=false;
@@ -301,16 +299,15 @@ void run_selected_auto()
     case 3:
       // Elims Red Rush
       rejectRedRings=false;
-      isElimsAuto = true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      red_wp_auto();
+      red_wp_auto(false);
       break;
     case 4:
       rejectRedRings=true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      blue_wp_auto();
+      blue_wp_auto(true);
       break;
     case 5:
       rejectRedRings=true;
@@ -321,10 +318,9 @@ void run_selected_auto()
     case 6:
       // Elims Blue Rush
       rejectRedRings=true;
-      isElimsAuto = true;
       //Register the colorSorting Task, but only after setting the "rejectRedRings" boolean correctly
       colorSortingTask = vex::task(ringSortingAutonTask, vex::task::taskPriorityNormal);
-      blue_wp_auto();
+      blue_wp_auto(false);
       break;
     case 7:
       rejectRedRings=false;
@@ -608,8 +604,8 @@ chassis.drive_max_voltage=9;
 
 /* -------------------------------------------------------------------------------------------------------------------------- */
 /// @brief Red Win Point Auto (Red - left side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
-/* -------------------------------------------------------------------------------------------------------------------------- */
-void red_wp_auto() {
+/// @param doLaddderDrive Whether to do the drive to the ladder ot not.  True = Do the drive, False = don't
+void red_wp_auto(bool doLadderDrive) {
   setup_auto();
 
   //Drive back and point towards alliance stake
@@ -669,7 +665,7 @@ void red_wp_auto() {
   chassis.drive_stop(brake);
 
   //In Elims, do not run code to touch ladder; otherwise go touch the ladder
-  if(!isElimsAuto) {
+  if(doLadderDrive) {
     //Turn towards the ladder
     turn_to_heading_large(180);
     //Raise arm on a separate thread while driving 
@@ -690,9 +686,9 @@ void red_wp_auto() {
 }
 
 /* -------------------------------------------------------------------------------------------------------------------------- */
-/// @brief Blue side Win Point Auto (BLUE - Right side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder
-/* -------------------------------------------------------------------------------------------------------------------------- */
-void blue_wp_auto() {
+/// @brief Blue side Win Point Auto (BLUE - Right side).  Scores 1 ring on alliance stake, 3 rings on Mogo, and touches ladder'
+/// @param doLaddderDriveWhether to do the drive to the ladder ot not.  True = Do the drive, False = don't
+void blue_wp_auto(bool doLadderDrive) {
   setup_auto();
 
   //Drive back and point towards alliance stake
@@ -751,7 +747,7 @@ void blue_wp_auto() {
   chassis.drive_stop(brake);
   
   //In Elims, do not run code to touch ladder; otherwise go touch the ladder
-  if(!isElimsAuto) {
+  if(doLadderDrive) {
     //All rings done, Now go touch the ladder
     //Turn towards the ladder
     turn_to_heading_xlarge(190); //Should be 180, but turn a bit less to save time
